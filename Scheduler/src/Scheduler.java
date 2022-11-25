@@ -1,8 +1,14 @@
 
 public class Scheduler {
-
+	
 	public Scheduler() {
-		// TODO Auto-generated constructor stub
+		
+		// parse notes
+		// validate preferences
+		// validate partial assignment
+		// return problem
+		
+		
 	}
 
 	public static void main(String[] args) {

@@ -1,14 +1,24 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class Population {
 	List<Individual> population;
 
 	public Population() {
-		// TODO Auto-generated constructor stub
+		population = new ArrayList<Individual>();
 	}
 	
+	public List<Individual> getPopulation() {
+		return population;
+	}
+
 	public void addIndividual(Individual schedule) {
 		
+	}
+	
+	public int fwert(Population current) {
+		if (current.getPopulation().isEmpty()) return 0;
+		else return 1;
 	}
 	
 	public Population create() {

@@ -1,14 +1,14 @@
 
-public class Practice extends Assignable {
-	private int pracId; 
-
-	public Practice(String id, int age, int tier, int div, int prac) {
+public class Open extends Assignable {
+	private int openId;
+	
+	public Open(String id, int age, int tier, int div, int open) {
 		super(id, age, tier, div);
-		this.pracId = prac;
+		this.openId = open;
 	}
 	
-	public int getPracId() {
-		return pracId;
+	public int getOpenId() {
+		return openId;
 	}
 
 	@Override
@@ -21,9 +21,9 @@ public class Practice extends Assignable {
 			id.append(getDiv());
 		}
 		
-		if (pracId < 10) id.append(" PRC 0");
-		else id.append(" PRC ");
-		id.append(pracId);
+		if (openId < 10) id.append(" OPN 0");
+		else id.append(" OPN ");
+		id.append(openId);
 		
 		return id.toString();
 	}

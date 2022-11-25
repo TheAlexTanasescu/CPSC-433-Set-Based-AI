@@ -1,9 +1,8 @@
 
 public class GameSlot extends TimeSlot {
-
-	public GameSlot(String day, String time) {
-		super.setDay(day);
-		super.setStartTime(time);
+	
+	public GameSlot(Day day, String time) {
+		super(day, time);
 	}
 
 }
