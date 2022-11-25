@@ -10,7 +10,7 @@ public class Individual {
 	private Problem prob;
 	
 	private Map<TimeSlot, List<Assignable>> schedule;
-	private double fitness;
+	private int fitness;
 	
 	private int n_games;
 	private int n_practices;
