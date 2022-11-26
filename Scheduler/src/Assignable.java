@@ -21,7 +21,7 @@ public abstract class Assignable {
 	public final Map<TimeSlot, Double> preferences = new HashMap<TimeSlot, Double>();
 	public final Set<Assignable> pair = new HashSet<Assignable>();
 	
-	// For games - special games are assigned to practice slots
+	// For CSMA games - special games are assigned to practice slots
 	public Assignable(String id, int age, int tier, int div, boolean isSpecial) {
 		this.leagueId = id;
 		this.ageGroup = age;
@@ -31,11 +31,18 @@ public abstract class Assignable {
 		if (div == 9) isEvening = true;
 	}
 	
-	// For practices 
+	// For CSMA practices 
 	public Assignable(String id, int age, int tier, int div) {
 		this.leagueId = id;
 		this.ageGroup = age;
 		this.tier = tier;
+		this.div = div;
+		if (div == 9) isEvening = true;
+	}
+	
+	// For all other organizing bodies games and practices
+	public Assignable(String id, int div) {
+		this.leagueId = id;
 		this.div = div;
 		if (div == 9) isEvening = true;
 	}
