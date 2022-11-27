@@ -1,5 +1,5 @@
 Name:
-Practicemax Test
+PracticemaxTest
 
 Game slots:
 

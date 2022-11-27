@@ -1,5 +1,5 @@
 Name:
-Gamemax Test
+GamemaxTest
 
 Game slots:
 MO, 8:00, 1, 0
