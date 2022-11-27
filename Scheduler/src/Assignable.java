@@ -18,7 +18,7 @@ public abstract class Assignable {
 	private TimeSlot partAssign = null;
 	
 	// Soft constraints
-	public final Map<TimeSlot, Double> preferences = new HashMap<TimeSlot, Double>();
+	public final Map<TimeSlot, Integer> preferences = new HashMap<TimeSlot, Integer>();
 	public final Set<Assignable> pair = new HashSet<Assignable>();
 	
 	// For CSMA games - special games are assigned to practice slots

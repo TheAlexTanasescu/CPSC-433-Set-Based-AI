@@ -10,7 +10,7 @@ import java.util.Random;
 public class Individual {
 	private Problem prob;
 	private ArrayList<Pair> scheduleInPair;
-	private int fitness;
+	private int fitness = Integer.MAX_VALUE;
 	private Random rand = new Random();
 	private int n_games;
 	private int n_practices;
@@ -244,7 +244,10 @@ public class Individual {
 			}
 		}
 		
-		if (constr) scheduleInPair = tempScheduleInPair;
+		if (constr) {
+			scheduleInPair = tempScheduleInPair;
+			evaluate(this);
+		}
 		else scheduleInPair = null;
 		
 		return constr;
@@ -281,8 +284,8 @@ public class Individual {
 	private ArrayList<TimeSlot> gameSpecial(Assignable toAssign) {
 		ArrayList<TimeSlot> slots = new ArrayList<TimeSlot>();
 		
-		TimeSlot slot1 = new GameSlot(Day.TU, "1700");
-		TimeSlot slot2 = new GameSlot(Day.TU, "1830");
+		TimeSlot slot1 = new PracticeSlot(Day.TU, "1700");
+		TimeSlot slot2 = new PracticeSlot(Day.TU, "1830");
 		int index1 = prob.practiceSlots.indexOf(slot1);
 		int index2 = prob.practiceSlots.indexOf(slot2);
 		
@@ -400,11 +403,139 @@ public class Individual {
 		return true;
 	}
 	
-	public double evaluate(Individual schedule) {
-		
-		return 0.0;
+	public int evaluate(Individual schedule) {
+		ArrayList<Pair> scheduleList = schedule.getSchedule();
+		int evalMinfilled = 0; // total penalties for not satisfying slot's minimum
+		int evalPref = 0; 		// total penalties from not satisfying preferences
+		int evalPair = 0; 		// total penalties from not satisfying pairs
+		int evalSecdiff = 0; 	// total penalties from overlapping divisions
+
+		// Part 1: Eval_minfill(assign) function
+		int gameSlotScore = 0; // keeps track of penalties per game slot
+		int gameSlotTotal = 0; // keeps track of penalties for all game slots in a schedule
+
+		// loop through all game slots and compare number of assigned games to the slot's min 
+		for (int i =0; i < n_gameslots; i++){
+			int assignedGames = 0; 							// keeps track of assigned games to current slot 
+			int gameslotMin = prob.gameSlots.get(i).getMin(); 	// keeps track of a slot's min games (i.e. gamemin(s))
+
+			// loop through schedule to find all games assigned to current game slot
+			for (int j=0; j < scheduleList.size(); j++){
+				if (scheduleList.get(j).second.equals(prob.gameSlots.get(i))){
+					assignedGames += 1;
+				}
+			}
+
+			// add a pen_gamemin for every game under the slot's min
+			if (assignedGames < gameslotMin) {
+				gameSlotScore = (gameslotMin - assignedGames) * prob.getPenGameMin();
+				gameSlotTotal += gameSlotScore;
+			}	
+		}
+
+		int practiceSlotScore = 0; // keeps track of penalties per practice slot
+		int practiceSlotTotal = 0; // keeps track of penalties for all game slots in a schedule
+
+		// loop through all practice slots and compare number of assigned practices to the slot's min
+		for (int i=0; i < n_practiceslots; i++){
+			int assignedPractices = 0; 								// keeps track of assigned practices to current slot 
+			int practiceSlotMin = prob.practiceSlots.get(i).getMin(); 	// keeps track of a slot's min practices (i.e. practicemin(s))
+
+			for (int j=0; j < scheduleList.size(); j++){
+				if (scheduleList.get(j).second.equals(prob.practiceSlots.get(i))){
+					assignedPractices += 1;
+				}
+			}
+
+			
+			// add a pen_practicemin for every practice under the slot's min
+			if (assignedPractices < practiceSlotMin) {
+				practiceSlotScore = (practiceSlotMin - assignedPractices) * prob.getPenPracticeMin();
+				practiceSlotTotal += practiceSlotScore;
+			}
+		}
+
+		// total penalty points: Eval_minfill(assign) * w_minfilled
+		evalMinfilled = (gameSlotTotal + practiceSlotTotal) * prob.getwMinFilled();
+
+
+		// Part 2: Eval_pref(assign) function
+		// note: pen_preferred = total points - fulfilled points
+		int totalPoints = 0; 		// keeps track of total preference points from input file?
+		int assignedPoints = 0; 	// keeps track of assigned preference points (i.e. game/practice assigned to preferred day+time)
+
+		// loop through preferences to get total used ranking points? are we keeping list of preferences?
+		// if hashmap not empty, add preference
+		for (int i=0; i < scheduleList.size(); i++){
+			for (Integer points : scheduleList.get(i).first.preferences.values()){
+				totalPoints += points;
+			}
+		}
+
+		// loop through schedule to get assigned games/practices and get assigned points
+		for (int i=0; i < scheduleList.size(); i++){
+			if (!scheduleList.get(i).first.preferences.isEmpty()){
+				if(scheduleList.get(i).first.preferences.containsKey(scheduleList.get(i).second)){
+					assignedPoints += scheduleList.get(i).first.preferences.get(scheduleList.get(i).second);
+				}
+			}
+		}		
+	
+		// total penalty points: Eval_pref(assign) * w_pref
+		evalPref = (totalPoints - assignedPoints) * prob.getwPref();
+
+		// Part 3: Eval_pair(assign) function
+		Map<TimeSlot, List<Assignable>> transformSchedule = transformSchedule(scheduleList);
+
+		// loop through schedule to get pairs
+		for (Pair assigned : scheduleList) {
+			if (!assigned.first.pair.isEmpty()) {
+				for (Assignable assignInSlot : transformSchedule.get(assigned.second)) {
+					if (!assigned.first.pair.contains(assignInSlot)) {
+						evalPair += prob.getPenNotPaired();
+					}
+				}
+			}
+		}
+
+		// total penalty points: Eval_pair(assign) * w_pair
+		evalPair *= prob.getwPair();
+
+		// Part 4: Eval_secdiff(assign) function 
+		for (Pair assigned : scheduleList) {
+			int ageGroup = assigned.first.getAgeGroup();
+			int tier = assigned.first.getTier();
+			if (assigned.first instanceof Game) {
+				for (Assignable assignInSlot : transformSchedule.get(assigned.second)) {
+					if (assignInSlot instanceof Game && assignInSlot.getAgeGroup() == ageGroup && assignInSlot.getTier() == tier) {
+						evalSecdiff += prob.getPenSection();						
+					}
+				}
+			}
+		}		
+
+		// total penalty points: Eval_secdiff(assign) * w_secdiff
+		evalSecdiff *= prob.getwSecDiff();
+
+		// Part 5: complete Eval(assign) function 
+		fitness = evalMinfilled + evalPref + evalPair + evalSecdiff;
+
+		return fitness;
 	}
 	
+	private Map<TimeSlot, List<Assignable>> transformSchedule(ArrayList<Pair> schedule) {
+		Map<TimeSlot, List<Assignable>> transformedSchedule = new HashMap<TimeSlot, List<Assignable>>();
+		for (Pair assigned : schedule) {
+			if (transformedSchedule.containsKey(assigned.second)) {
+				transformedSchedule.get(assigned.second).add(assigned.first);
+			} else {
+				transformedSchedule.put(assigned.second, new ArrayList<Assignable>());
+				transformedSchedule.get(assigned.second).add(assigned.first);
+			}			
+		}
+		return transformedSchedule;
+	}
+
 	private static Comparator<Pair> comparator = new Comparator<Pair>() {
 		@Override
 		public int compare(Pair o1, Pair o2) {
