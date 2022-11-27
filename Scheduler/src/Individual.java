@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,15 +9,13 @@ import java.util.Random;
 
 public class Individual {
 	private Problem prob;
-	
-	private Map<TimeSlot, List<Assignable>> schedule;
+	private ArrayList<Pair> scheduleInPair;
 	private int fitness;
-	
+	private Random rand = new Random();
 	private int n_games;
 	private int n_practices;
 	private int n_gameslots;
 	private int n_practiceslots;
-	private Random rand = new Random();
 	private Integer[] allGames;
 	private Integer[] allPractices;
 	private Integer[] allGTS;
@@ -25,7 +24,41 @@ public class Individual {
 	int sg = 0;
 	int sp = 0;
 
-	public Individual() {
+	public Individual(Problem prob) {
+		this.prob = prob;
+		initializeRandHelper();
+		random();
+	}
+	
+	public Problem getProb() {
+		return prob;
+	}
+	
+	public int getFitness() {
+		return fitness;
+	}
+		
+	public ArrayList<Pair> getSchedule() {
+		return scheduleInPair;
+	}
+	
+	public boolean isBestFitFound() {
+		if (fitness == 0) return true;
+		return false;
+	}
+	
+	public ArrayList<Pair> removeFact(int index) {
+		scheduleInPair.remove(index);
+		return scheduleInPair;
+	}
+	
+	public ArrayList<Pair> swapFacts(int index, Individual bestFit) {
+		ArrayList<Pair> toCross = bestFit.getSchedule();
+		scheduleInPair.subList(0, index).addAll(toCross.subList(index, toCross.size()));
+		return scheduleInPair;
+	}
+	
+	private void initializeRandHelper() {
 		n_games = prob.games.size();
 		allGames = new Integer[n_games];
 		n_practices = prob.practices.size();
@@ -34,15 +67,6 @@ public class Individual {
 		allGTS = new Integer[n_gameslots];
 		n_practiceslots = prob.practiceSlots.size();
 		allPTS = new Integer[n_practiceslots];
-		random();
-	}
-	
-	public Individual(Individual schedule) {
-		validate(schedule.getSchedule());
-	}
-	
-	public Map<TimeSlot, List<Assignable>> getSchedule() {
-		return schedule;
 	}
 	
 	private void generateRandomSeq(Integer[] listToShuffle) {
@@ -53,33 +77,35 @@ public class Individual {
 	}
 	
 	public void random() {
+		ArrayList<Pair> randomSchedule = new ArrayList<Pair>();
+				
 		// generate random
 		generateRandomSeq(allGames);
 		generateRandomSeq(allPractices);
 		
 		Assignable toAssign;
-		int g = 0;
-		int p = 0;
+		int ag = 0;
+		int ap = 0;
 		
 		for (int i = 0; i < n_games + n_practices; i++) {
 			int next = rand.nextInt(2);
 			if (next == 0) {
-				toAssign = prob.games.get(allGames[g]);
+				toAssign = prob.games.get(allGames[ag]);
 				ArrayList<TimeSlot> slots = gameSlotChoice(toAssign);
 				for (TimeSlot slot : slots) {
-					assignment(toAssign, slot, schedule);
+					assignment(toAssign, slot, randomSchedule);
 				}
-				g++;
+				ag++;
 			} else {
-				toAssign = prob.practices.get(allPractices[p]);
+				toAssign = prob.practices.get(allPractices[ap]);
 				TimeSlot slot = pracSlotChoice(toAssign);
-				assignment(toAssign, slot, schedule);
-				p++;
+				assignment(toAssign, slot, randomSchedule);
+				ap++;
 			}
 		}
 		
 		// validate
-		validate(schedule);
+		validate(randomSchedule);
 	}
 	
 	private ArrayList<TimeSlot> gameSlotChoice(Assignable toAssign) {
@@ -139,17 +165,47 @@ public class Individual {
 		return prob.practiceSlots.get(randSlot);
 	}
 	
-	public boolean validate(Map<TimeSlot, List<Assignable>> scheduleToValidate) {
+	private void assignment(Assignable toAssign, TimeSlot slot, ArrayList<Pair> schedule) {
+		schedule.add(new Pair(toAssign, slot));
+	}
+	
+	private void assignment(Assignable toAssign, TimeSlot slot, Map<TimeSlot, List<Assignable>> schedule) {
+		if (schedule.containsKey(slot)) {
+			schedule.get(slot).add(toAssign);
+		} else {
+			schedule.put(slot, new ArrayList<Assignable>());
+			schedule.get(slot).add(toAssign);
+		}
+	}
+		
+	public boolean validate(ArrayList<Pair> scheduleToValidate) {
+		ArrayList<Pair> tempScheduleInPair = new ArrayList<Pair>();
 		Map<TimeSlot, List<Assignable>> tempSchedule = new HashMap<TimeSlot, List<Assignable>>();
 		HashMap<Assignable, TimeSlot> givenSchedule = new HashMap<Assignable, TimeSlot>();
 		HashMap<Assignable, TimeSlot> searchState = new HashMap<Assignable, TimeSlot>();
 				
 		boolean constr = true;
-		for (TimeSlot slot : scheduleToValidate.keySet()) {
-			for (Assignable assigned : scheduleToValidate.get(slot)) {
-				givenSchedule.put(assigned, slot);
-				searchState.put(assigned, null);
+		for (Pair assigned : scheduleToValidate) {
+			givenSchedule.put(assigned.first, assigned.second);
+			searchState.put(assigned.first, null);
+		}
+		
+		// if schedule is not full, randomly choose unassigns until full
+		while (givenSchedule.size() < prob.getIndividualMax()) {
+			Assignable toAssign;
+			if (rand.nextInt(2) == 0) {
+				toAssign = prob.games.get(rand.nextInt(n_games));
+				while (givenSchedule.containsKey(toAssign)) {
+					toAssign = prob.games.get(rand.nextInt(n_games));
+				}
+			} else {
+				toAssign = prob.practices.get(rand.nextInt(n_practices));
+				while (givenSchedule.containsKey(toAssign)) {
+					toAssign = prob.practices.get(rand.nextInt(n_practices));
+				}
 			}
+			givenSchedule.put(toAssign, null);
+			searchState.put(toAssign, null);
 		}
 		
 		// generate random
@@ -174,6 +230,7 @@ public class Individual {
 				if (passedHardConstr(assignable, toAssign, tempSchedule)) {
 					searchState.put(assignable, toAssign);
 					assignment(assignable, toAssign, tempSchedule);
+					assignment(assignable, toAssign, tempScheduleInPair);
 					break;
 				}
 				
@@ -187,8 +244,8 @@ public class Individual {
 			}
 		}
 		
-		if (constr) scheduleToValidate = tempSchedule;
-		else scheduleToValidate = null;
+		if (constr) scheduleInPair = tempScheduleInPair;
+		else scheduleInPair = null;
 		
 		return constr;
 	}
@@ -246,14 +303,6 @@ public class Individual {
 		}
 		return true;
 	}
-	
-//	private boolean dayCheck(Assignable assignable) {
-//		if (assignable instanceof Game) {
-//			if (assignedDay == Day.FR) {
-//				return false;
-//			}
-//		}
-//	}
 	
 	private boolean eveningCheck(Assignable assignable, TimeSlot toAssign) {
 		// if div 9, in evening slot
@@ -351,27 +400,29 @@ public class Individual {
 		return true;
 	}
 	
-	private void assignment(Assignable toAssign, TimeSlot slot, Map<TimeSlot, List<Assignable>> schedule) {
-		if (schedule.containsKey(slot)) {
-			if (schedule.get(slot).size() < slot.getMax()) {
-				schedule.get(slot).add(toAssign);
-			}
-		} else {
-			schedule.put(slot, new ArrayList<Assignable>());
-			if (schedule.get(slot).size() < slot.getMax()) {
-				schedule.get(slot).add(toAssign);
-			}
-		}
-	}
-	
 	public double evaluate(Individual schedule) {
 		
 		return 0.0;
 	}
 	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+	private static Comparator<Pair> comparator = new Comparator<Pair>() {
+		@Override
+		public int compare(Pair o1, Pair o2) {
+			return (o1.first.getLeagueId()).compareToIgnoreCase(o2.first.getLeagueId());
+		}
+    };
+	
+	@Override
+	public String toString() {
+		StringBuilder output = new StringBuilder();
+		Collections.sort(scheduleInPair, comparator);
+		
+		for (Pair assigned : scheduleInPair) {
+			output.append(assigned.first);
+			output.append(" :");
+			output.append(assigned.second);
+		}
+		
+		return output.toString();
 	}
-
 }

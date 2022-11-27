@@ -34,6 +34,13 @@ public class Problem {
 		this.penNotPaired = penNotPaired;
 		this.penSection = penSection;
 	}
+	
+	public int getIndividualMax() {
+		int assignableMax = games.size() + practices.size();
+		int slotMax = 10; // should get this value after parsing
+		
+		return Math.min(assignableMax, slotMax);
+	}
 
 	public int getMaxGenerations() {
 		return maxGenerations;
