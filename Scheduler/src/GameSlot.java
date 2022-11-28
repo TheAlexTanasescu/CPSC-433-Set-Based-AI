@@ -1,5 +1,10 @@
 
 public class GameSlot extends TimeSlot {
+
+	
+	public GameSlot(Day day, String time) {
+		super(day, time);
+
     private int gameMax;
 	private int gameMin;
 
@@ -8,6 +13,7 @@ public class GameSlot extends TimeSlot {
 		super.setStartTime(time);
 		setGameMax(gameMax);
 		setGameMin(gameMin);
+
 	}
 
 	public void setGameMax(int gameMax) {
