@@ -2,8 +2,12 @@ import java.util.NavigableMap;
 import java.util.Random;
 import java.util.TreeMap;
 
-
-// https://stackoverflow.com/questions/6409652/random-weighted-selection-in-java
+/**
+ * Adopted from https://stackoverflow.com/questions/6409652/random-weighted-selection-in-java
+ * 
+ * This class is used to perform random weighted selection to help picking better fitted
+ * schedules to perform mutation or crossover.
+ */
 public class RandomCollection<E> {
 	private final NavigableMap<Double, E> map = new TreeMap<Double, E>();
     private final Random random;
