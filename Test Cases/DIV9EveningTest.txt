@@ -1,0 +1,37 @@
+TueThuPracTest
+// This will test for if all other constraints pass, will the Tue -> Thu pracice constraint will cause an invalid schedule
+
+Game slots: 
+MO, 8:00, 2, 1 
+TU, 9:30, 2, 1 
+
+Practice slots: 
+MO, 8:00, 4, 2 
+WE, 8:00, 2, 1
+TH, 9:30, 2, 1
+FR, 10:00, 2, 1 
+
+Games: 
+CSMA U13T3 DIV 01 
+CUSA O18 DIV 01 
+CSMA U17T1 DIV 01 
+
+Practices: 
+CSMA U13T3 DIV 01 PRC 01 
+CUSA O18 DIV 09 PRC 01 
+CSMA U17T1 PRC 01 
+
+Not Compatible: 
+
+Unwanted: 
+
+Preferences: 
+
+Pair: 
+
+Partial Assignments: 
+
+
+//There are no Evening slots to satisfy the condition for DIV 9 games/practices.
+
+
