@@ -1,5 +1,4 @@
-TueThuPracTest
-// This will test for if all other constraints pass, will the Tue -> Thu pracice constraint will cause an invalid schedule
+Name: DIV9EveningTest
 
 Game slots: 
 MO, 8:00, 2, 1 

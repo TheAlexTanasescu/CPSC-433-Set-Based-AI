@@ -1,12 +1,15 @@
-TueThuPracTest
-// This will test for if all other constraints pass, will the Tue -> Thu pracice constraint will cause an invalid schedule
+Name: U15-U16-U17-U19GamesTest
 
 Game slots: 
-MO, 8:00, 2, 1 
-TU, 9:30, 2, 1 
+MO, 8:00, 1, 1 
+TU, 9:30, 2, 1
+WE, 8:00, 1, 1
+TH, 9:30, 2, 1
+FR, 8:00. 1, 1
 
 Practice slots: 
 MO, 8:00, 4, 2 
+TU, 9:30, 2, 1
 WE, 8:00, 2, 1
 TH, 9:30, 2, 1
 FR, 10:00, 2, 1 

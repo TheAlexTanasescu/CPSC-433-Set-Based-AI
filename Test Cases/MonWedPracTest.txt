@@ -1,5 +1,4 @@
-MonWedPracTest
-// This will test for if all other constraints pass, will the Mon -> Wed pracice constraint will cause an invalid schedule
+Name: MonWedPracTest
 
 Game slots: 
 MO, 8:00, 2, 1 
@@ -32,6 +31,6 @@ Pair:
 Partial Assignments: 
 
 
-There are not enough Wednesday slots to satisfy the condition for matching Mon & Wed spots.
+
 
 

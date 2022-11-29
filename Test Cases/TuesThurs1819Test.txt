@@ -1,9 +1,8 @@
-TuesThurs1819Test
-// This will test for if all other constraints pass, will the Tue -> Thu pracice constraint will cause an invalid schedule
+Name: TuesThurs1819Test
 
 Game slots: 
 MO, 8:00, 2, 1 
-TU, 11:00, 2, 1
+TU, 9:30, 2, 1
 
 Practice slots: 
 MO, 8:00, 2, 2 
