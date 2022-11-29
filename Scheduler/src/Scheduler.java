@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 
 public class Scheduler {
 	// parse notes
@@ -6,10 +7,14 @@ public class Scheduler {
 	// return problem
 	private static Individual result = null;
 
-	public static void main(String[] args) {
+	public static void main(String[] args)  {
 		Scheduler scheduler = new Scheduler();
-		Parser parser = new Parser();
-		Problem prob = parser.parse();
+		Parser parser = null;
+		try {
+			parser = new Parser(args);
+			Problem prob = parser.parse("/Users/alextanasescu/Desktop/Coding/CPSC-433-Set-Based-AI/Scheduler/src/Scheduler.java");
+
+
 		int ctr;
 		int genCount = 0;
 		
@@ -30,6 +35,9 @@ public class Scheduler {
 		
 		result = currentPop.getBestIndividual();
 		scheduler.printResult();
+		} catch (FileNotFoundException e) {
+		}
+		
 	}
 	
 	private void printResult() {
