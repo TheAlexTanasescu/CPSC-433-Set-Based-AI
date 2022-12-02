@@ -6,12 +6,13 @@ public class Problem {
 	public ArrayList<Practice> practices = new ArrayList<Practice>();
 	public ArrayList<GameSlot> gameSlots = new ArrayList<GameSlot>();
 	public ArrayList<PracticeSlot> practiceSlots = new ArrayList<PracticeSlot>();
+	private int maxSlots;
 	
 	// Environment
 	public String problemName;
 	private int maxGenerations;
 	private int populationSize;
-	private double fitnessThreshold;
+	private int fitnessThreshold;
 	
 	private int wMinFilled;
 	private int wPref;
@@ -24,21 +25,8 @@ public class Problem {
 	private int penSection;
 	
 	public Problem(int wMinFilled, int wPref, int wPair, int wSecDiff, 
-			int penGameMin, int penPracticeMin, int penNotPaired, int penSection) {
-		this.wMinFilled = wMinFilled;
-		this.wPref = wPref;
-		this.wPair = wPair;
-		this.wSecDiff = wSecDiff;
-		
-		this.penGameMin = penGameMin;
-		this.penPracticeMin = penPracticeMin;
-		this.penNotPaired = penNotPaired;
-		this.penSection = penSection;
-	}
-	
-	public Problem(int wMinFilled, int wPref, int wPair, int wSecDiff, 
 			int penGameMin, int penPracticeMin, int penNotPaired, int penSection, 
-			int maxGenerations, int populationSize, double fitnessThreshold) {
+			int maxGenerations, int populationSize, int fitnessThreshold) {
 		this.wMinFilled = wMinFilled;
 		this.wPref = wPref;
 		this.wPair = wPair;
@@ -54,11 +42,14 @@ public class Problem {
 		this.fitnessThreshold = fitnessThreshold;
 	}
 	
+	public void setMaxSlots(int maxSlots) {
+		this.maxSlots = maxSlots;
+	}
+
 	public int getIndividualMax() {
 		int assignableMax = games.size() + practices.size();
-		int slotMax = 10; // should get this value after parsing
-		
-		return Math.min(assignableMax, slotMax);
+
+		return Math.min(assignableMax, maxSlots);
 	}
 
 	public int getMaxGenerations() {
@@ -69,7 +60,7 @@ public class Problem {
 		return populationSize;
 	}
 
-	public double getFitnessThreshold() {
+	public int getFitnessThreshold() {
 		return fitnessThreshold;
 	}
 

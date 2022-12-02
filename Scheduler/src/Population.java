@@ -36,8 +36,11 @@ public class Population {
 	public Population create() {
 		populationList = new ArrayList<Individual>();
 		Individual randSche;
+//		System.out.println(populationList.size());
+//		System.out.println(prob.getPopulationSize());
 		while (populationList.size() < prob.getPopulationSize()) {
 			randSche = new Individual(prob);
+			randSche.random();
 			if (randSche.getSchedule() != null) {
 				populationList.add(randSche);
 				if (randSche.isBestFitFound()) {

@@ -19,8 +19,9 @@ public class Scheduler {
 			
 			Population currentPop = new Population(prob);
 			ctr = currentPop.control();
+//			System.out.println(ctr);
 			
-			while (genCount < prob.getMaxGenerations()) {
+			while (genCount <= prob.getMaxGenerations()) {
 				if (ctr == 0) {
 					currentPop = currentPop.create();
 					
@@ -31,6 +32,7 @@ public class Scheduler {
 				if(currentPop.isBestFitFound()) break;
 				genCount++;
 			}
+//			System.out.println(genCount);
 			
 			result = currentPop.getBestIndividual();
 			scheduler.printResult();

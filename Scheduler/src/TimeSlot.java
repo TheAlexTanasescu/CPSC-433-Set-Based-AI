@@ -1,4 +1,3 @@
-
 public abstract class TimeSlot {
 	private Day day;
 	private String startTime;

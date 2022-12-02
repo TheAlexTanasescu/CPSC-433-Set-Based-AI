@@ -12,10 +12,10 @@ public class Individual {
 	private ArrayList<Pair> scheduleInPair;
 	private int fitness = Integer.MAX_VALUE;
 	private Random rand = new Random();
-	private int n_games;
-	private int n_practices;
-	private int n_gameslots;
-	private int n_practiceslots;
+	private int nGames;
+	private int nPractices;
+	private int nGameslots;
+	private int nPracticeslots;
 	private Integer[] allGames;
 	private Integer[] allPractices;
 	private Integer[] allGTS;
@@ -27,7 +27,6 @@ public class Individual {
 	public Individual(Problem prob) {
 		this.prob = prob;
 		initializeRandHelper();
-		random();
 	}
 	
 	public Problem getProb() {
@@ -59,14 +58,14 @@ public class Individual {
 	}
 	
 	private void initializeRandHelper() {
-		n_games = prob.games.size();
-		allGames = new Integer[n_games];
-		n_practices = prob.practices.size();
-		allPractices = new Integer[n_practices];
-		n_gameslots = prob.gameSlots.size();
-		allGTS = new Integer[n_gameslots];
-		n_practiceslots = prob.practiceSlots.size();
-		allPTS = new Integer[n_practiceslots];
+		nGames = prob.games.size();
+		allGames = new Integer[nGames];
+		nPractices = prob.practices.size();
+		allPractices = new Integer[nPractices];
+		nGameslots = prob.gameSlots.size();
+		allGTS = new Integer[nGameslots];
+		nPracticeslots = prob.practiceSlots.size();
+		allPTS = new Integer[nPracticeslots];
 	}
 	
 	private void generateRandomSeq(Integer[] listToShuffle) {
@@ -83,24 +82,38 @@ public class Individual {
 		generateRandomSeq(allGames);
 		generateRandomSeq(allPractices);
 		
+//		for (int n : allGames) {
+//			System.out.print(n + ", ");
+//		}
+//		System.out.println("end");
+//		for (int n : allPractices) {
+//			System.out.print(n + ", ");
+//		}
+//		System.out.println("end");
+		
 		Assignable toAssign;
 		int ag = 0;
 		int ap = 0;
+		int i = 0;
 		
-		for (int i = 0; i < n_games + n_practices; i++) {
+		while (i < nGames + nPractices) {
+//			System.out.print(i);
 			int next = rand.nextInt(2);
-			if (next == 0) {
+//			System.out.println(": " + next);
+			if (next == 0 && ag < nGames) {
+//				System.out.println(allGames[ag]);
 				toAssign = prob.games.get(allGames[ag]);
-				ArrayList<TimeSlot> slots = gameSlotChoice(toAssign);
-				for (TimeSlot slot : slots) {
-					assignment(toAssign, slot, randomSchedule);
-				}
+				TimeSlot slot = gameSlotChoice(toAssign);
+				assignment(toAssign, slot, randomSchedule);
 				ag++;
-			} else {
+				i++;
+			} else if (next == 1 && ap < nPractices) {
+//				System.out.println(allPractices[ap]);
 				toAssign = prob.practices.get(allPractices[ap]);
 				TimeSlot slot = pracSlotChoice(toAssign);
 				assignment(toAssign, slot, randomSchedule);
 				ap++;
+				i++;
 			}
 		}
 		
@@ -108,8 +121,7 @@ public class Individual {
 		validate(randomSchedule);
 	}
 	
-	private ArrayList<TimeSlot> gameSlotChoice(Assignable toAssign) {
-		ArrayList<TimeSlot> slots = new ArrayList<TimeSlot>();
+	private TimeSlot gameSlotChoice(Assignable toAssign) {
 		int randSlot;
 		
 		if (toAssign.isSpecial()) {
@@ -117,29 +129,26 @@ public class Individual {
 		}
 		
 		if (toAssign.getPartAssign() != null) {
-			slots.add(toAssign.getPartAssign());
-			return slots;
+			return toAssign.getPartAssign();
 		}
 		
 		if (!toAssign.unwanted.isEmpty()) {
-			randSlot = rand.nextInt(n_gameslots);
+			randSlot = rand.nextInt(nGameslots);
 			TimeSlot slot = prob.gameSlots.get(randSlot);
-			
-			while (toAssign.unwanted.contains(slot)) {
-				randSlot = rand.nextInt(n_gameslots);
+			while (toAssign.unwanted.contains(slot) || slot.getMax() == 0) {
+				randSlot = rand.nextInt(nGameslots);
 				slot = prob.gameSlots.get(randSlot);
 			}
-			
-			slots.add(slot);
-			return slots;
+			return slot;
 		}
 		
-		randSlot = rand.nextInt(n_gameslots);
-		slots.add(prob.gameSlots.get(randSlot));
-
-		return slots;
+		randSlot = rand.nextInt(nGameslots);
+		while (prob.gameSlots.get(randSlot).getMax() == 0) {
+			randSlot = rand.nextInt(nGameslots);
+		}
+		return prob.gameSlots.get(randSlot);
 	}
-
+	
 	private TimeSlot pracSlotChoice(Assignable toAssign) {
 		TimeSlot slot;
 		int randSlot;
@@ -149,19 +158,19 @@ public class Individual {
 		}
 		
 		if (!toAssign.unwanted.isEmpty()) {
-			randSlot = rand.nextInt(n_practiceslots);
+			randSlot = rand.nextInt(nPracticeslots);
 			slot = prob.practiceSlots.get(randSlot);
-			
-			while (toAssign.unwanted.contains(slot)) {
-				randSlot = rand.nextInt(n_practiceslots);
+			while (toAssign.unwanted.contains(slot) || slot.getMax() == 0) {
+				randSlot = rand.nextInt(nPracticeslots);
 				slot = prob.practiceSlots.get(randSlot);
 			}
-			
 			return slot;
 		}
 		
-		randSlot = rand.nextInt(n_practiceslots);
-
+		randSlot = rand.nextInt(nPracticeslots);
+		while (prob.practiceSlots.get(randSlot).getMax() == 0) {
+			randSlot = rand.nextInt(nPracticeslots);
+		}
 		return prob.practiceSlots.get(randSlot);
 	}
 	
@@ -184,50 +193,77 @@ public class Individual {
 		HashMap<Assignable, TimeSlot> givenSchedule = new HashMap<Assignable, TimeSlot>();
 		HashMap<Assignable, TimeSlot> searchState = new HashMap<Assignable, TimeSlot>();
 				
-		boolean constr = true;
 		for (Pair assigned : scheduleToValidate) {
+//			System.out.println(assigned.first + ":" + assigned.second);
 			givenSchedule.put(assigned.first, assigned.second);
 			searchState.put(assigned.first, null);
 		}
 		
 		// if schedule is not full, randomly choose unassigns until full
 		while (givenSchedule.size() < prob.getIndividualMax()) {
+			System.out.println("schedule not full");
 			Assignable toAssign;
 			if (rand.nextInt(2) == 0) {
-				toAssign = prob.games.get(rand.nextInt(n_games));
+				toAssign = prob.games.get(rand.nextInt(nGames));
 				while (givenSchedule.containsKey(toAssign)) {
-					toAssign = prob.games.get(rand.nextInt(n_games));
+					toAssign = prob.games.get(rand.nextInt(nGames));
 				}
 			} else {
-				toAssign = prob.practices.get(rand.nextInt(n_practices));
+				toAssign = prob.practices.get(rand.nextInt(nPractices));
 				while (givenSchedule.containsKey(toAssign)) {
-					toAssign = prob.practices.get(rand.nextInt(n_practices));
+					toAssign = prob.practices.get(rand.nextInt(nPractices));
 				}
 			}
 			givenSchedule.put(toAssign, null);
 			searchState.put(toAssign, null);
 		}
 		
+		for (TimeSlot slot : prob.gameSlots) {
+			if (!tempSchedule.containsKey(slot)) {
+				tempSchedule.put(slot, new ArrayList<Assignable>());
+			}
+		}
+		
+		for (TimeSlot slot : prob.practiceSlots) {
+			if (!tempSchedule.containsKey(slot)) {
+				tempSchedule.put(slot, new ArrayList<Assignable>());
+			}
+		}
+		
+//		System.out.println(givenSchedule.size());
+//		System.out.println(prob.getIndividualMax());
+		
+		boolean constr = true;
+		
 		// generate random
 		generateRandomSeq(allGTS);
 		generateRandomSeq(allPTS);
-		
+
 		for (Assignable assignable : searchState.keySet()) {
 			// no valid schedule found
 			if (!constr) break;
 			sg = 0;
 			sp = 0;
-			
+//			System.out.println(assignable);
 			// select a slot to proceed (predefined or random)
 			TimeSlot toAssign = givenSchedule.get(assignable);
+//			System.out.println(toAssign);
 			if (toAssign != null) {
 				toAssign = getNextSlot(assignable);
 			}
 			
+//			System.out.println(n_gameslots + " + " + n_practiceslots);
+			
 			// loop until a valid slot is found or no valid slot can be found for current assignable
-			while(sg < n_gameslots || sp < n_practiceslots) {
+			while (sg < nGameslots && sp < nPracticeslots) {
+				// can't find a valid slot for this assignable, go the the next assignable
+				if (sg >= nGameslots || sp >= nPracticeslots) {
+					constr = false;
+					break;
+				}
+//				System.out.println(sg + ": " + sp);
 				// all passed, break and try the next assignable
-				if (passedHardConstr(assignable, toAssign, tempSchedule)) {
+				if (passedHardConstr(assignable, toAssign, tempSchedule, searchState)) {
 					searchState.put(assignable, toAssign);
 					assignment(assignable, toAssign, tempSchedule);
 					assignment(assignable, toAssign, tempScheduleInPair);
@@ -236,11 +272,6 @@ public class Individual {
 				
 				// failed to pass all hard constraints, try the next slot
 				toAssign = getNextSlot(assignable);
-				
-				// can't find a valid slot for this assignable, go the the next assignable
-				if (sg == n_gameslots && sp == n_practiceslots) {
-					constr = false;
-				}
 			}
 		}
 		
@@ -254,16 +285,20 @@ public class Individual {
 	}
 	
 	private TimeSlot getNextSlot(Assignable assignable) {
+		TimeSlot slot;
 		if (assignable instanceof Game) {
+			slot = prob.gameSlots.get(allGTS[sg]);
 			sg++;
-			return prob.gameSlots.get(allGTS[sg]);
 		} else {
+			slot = prob.practiceSlots.get(allPTS[sp]);
 			sp++;
-			return prob.practiceSlots.get(allPTS[sp]);
 		}
+		return slot;
 	}
 	
-	private boolean passedHardConstr(Assignable assignable, TimeSlot toAssign, Map<TimeSlot, List<Assignable>> tempSchedule) {
+	private boolean passedHardConstr(Assignable assignable, TimeSlot toAssign, 
+			Map<TimeSlot, List<Assignable>> tempSchedule, Map<Assignable, TimeSlot> searchState) {
+		if (toAssign == null) return false;
 		Day assignDay = toAssign.getDay();
 		String assignTime = toAssign.getStartTime();
 		
@@ -274,33 +309,24 @@ public class Individual {
 		partAssignCheck(assignable, assignDay, assignTime) &&
 		unwantedCheck(assignable, toAssign) &&
 		maxCheck(assignable, toAssign, tempSchedule) &&
-		overlapCheck(12, 1, assignable, toAssign, tempSchedule) &&
-		overlapCheck(13, 1, assignable, toAssign, tempSchedule) &&
-		divCheck(assignable, toAssign, tempSchedule) &&
+		specialOverlapCheck(12, 1, assignable, toAssign, tempSchedule) &&
+		specialOverlapCheck(13, 1, assignable, toAssign, tempSchedule) &&
+		divCheck(assignable, toAssign, tempSchedule, searchState) &&
 		agetierCheck(assignable, toAssign, tempSchedule) &&
-		notcompatibleCheck(assignable, toAssign, tempSchedule);
+		notcompatibleCheck(assignable, toAssign, tempSchedule, searchState);
 	}
 	
-	private ArrayList<TimeSlot> gameSpecial(Assignable toAssign) {
-		ArrayList<TimeSlot> slots = new ArrayList<TimeSlot>();
-		
-		TimeSlot slot1 = new PracticeSlot(Day.TU, "1700");
-		TimeSlot slot2 = new PracticeSlot(Day.TU, "1830");
-		int index1 = prob.practiceSlots.indexOf(slot1);
-		int index2 = prob.practiceSlots.indexOf(slot2);
-		
-		if (index1 != -1 && index2 != -1) {
-			slots.add(prob.practiceSlots.get(index1));
-			slots.add(prob.practiceSlots.get(index2));
-		}
-		
-		return slots;
+	private TimeSlot gameSpecial(Assignable toAssign) {
+		TimeSlot slot = new PracticeSlot(Day.TU, "1800");
+		int index = prob.practiceSlots.indexOf(slot);
+		if (index != -1 && prob.practiceSlots.get(index).getMax() > 0) return prob.practiceSlots.get(index);
+		return null;
 	}
 	
 	private boolean specialCheck(Assignable assignable) {
 		// if special, check timeslot
 		if (assignable.isSpecial()) {
-			if (gameSpecial(assignable).size() != 2) {
+			if (gameSpecial(assignable) == null) {
 				return false;
 			}
 		}
@@ -345,13 +371,16 @@ public class Individual {
 	
 	private boolean maxCheck(Assignable assignable, TimeSlot toAssign, Map<TimeSlot, List<Assignable>> tempSchedule) {
 		// gamemax, practicemax
-		if (tempSchedule.get(toAssign).size() >= toAssign.getMax()) {
-			return false;
+		if (tempSchedule.get(toAssign) != null) {
+			if (toAssign.getMax() == 0 || tempSchedule.get(toAssign).size() >= toAssign.getMax()) {
+				return false;
+			}
 		}
 		return true;
 	}
 	
-	private boolean overlapCheck(int age, int tier, Assignable assignable, TimeSlot toAssign, Map<TimeSlot, List<Assignable>> tempSchedule) {
+	private boolean specialOverlapCheck(int age, int tier, Assignable assignable, TimeSlot toAssign, 
+			Map<TimeSlot, List<Assignable>> tempSchedule) {
 		// if U12T1 / U13T1, check overlap with special
 		if (assignable.getAgeGroup() == age && assignable.getTier() == tier) {
 			for (Assignable assigned : tempSchedule.get(toAssign)) {
@@ -363,11 +392,12 @@ public class Individual {
 		return true;
 	}
 	
-	private boolean divCheck(Assignable assignable, TimeSlot toAssign, Map<TimeSlot, List<Assignable>> tempSchedule) {
-		// game and practice for the same div are not overlap			
+	private boolean divCheck(Assignable assignable, TimeSlot toAssign, 
+			Map<TimeSlot, List<Assignable>> tempSchedule, Map<Assignable, TimeSlot> searchState) {
+		// game and practice for the same div are not overlap		
 		for (Assignable assigned : tempSchedule.get(toAssign)) {
 			if (assignable.getDiv() == assigned.getDiv()) {
-				if (assignable.getLeagueId().equals(assigned.getLeagueId())) {
+				if (assignable.getLeagueId().equals(assigned.getLeagueId()) || isOverlap(toAssign, searchState.get(assigned))) {
 					return false;
 				}
 			}
@@ -391,16 +421,122 @@ public class Individual {
 		return true;
 	}
 	
-	private boolean notcompatibleCheck(Assignable assignable, TimeSlot toAssign, Map<TimeSlot, List<Assignable>> tempSchedule) {
+	private boolean notcompatibleCheck(Assignable assignable, TimeSlot toAssign, 
+			Map<TimeSlot, List<Assignable>> tempSchedule, Map<Assignable, TimeSlot> searchState) {
 		// notcompatible
 		if (!assignable.notcompatible.isEmpty()) {
 			for (Assignable assigned : tempSchedule.get(toAssign)) {
-				if (assignable.notcompatible.contains(assigned)) {
+				if (assignable.notcompatible.contains(assigned) || isOverlap(toAssign, searchState.get(assigned))) {
 					return false;
 				}
 			}
 		}
 		return true;
+	}
+	
+	private boolean isOverlap(TimeSlot t1, TimeSlot t2) {
+		if (t1 instanceof GameSlot && t2 instanceof PracticeSlot) {
+			if (t1.getDay() == Day.MO && t2.getDay() == Day.MO) {
+				if (t1.getStartTime().equals(t2.getStartTime())) return true;
+			} else if (t1.getDay() == Day.MO && t2.getDay() == Day.FR) {
+				switch(t1.getStartTime()) {
+					case "800":
+						if (t2.getStartTime().equals("800")) return true;
+					case "900":
+						if (t2.getStartTime().equals("800")) return true;
+					case "1000":
+						if (t2.getStartTime().equals("1000")) return true;
+					case "1100":
+						if (t2.getStartTime().equals("1000")) return true;
+					case "1200":
+						if (t2.getStartTime().equals("1200")) return true;
+					case "1300":
+						if (t2.getStartTime().equals("1200")) return true;
+					case "1400":
+						if (t2.getStartTime().equals("1400")) return true;
+					case "1500":
+						if (t2.getStartTime().equals("1400")) return true;
+					case "1600":
+						if (t2.getStartTime().equals("1600")) return true;
+					case "1700":
+						if (t2.getStartTime().equals("1600")) return true;
+					case "1800":
+						if (t2.getStartTime().equals("1800")) return true;
+					case "1900":
+						if (t2.getStartTime().equals("1800")) return true;
+					default: break;
+				}
+			} else if (t1.getDay() == Day.TU && t2.getDay() == Day.TU) {
+				switch(t1.getStartTime()) {
+					case "800":
+						if (t2.getStartTime().equals("800") || t2.getStartTime().equals("900")) return true;
+					case "930":
+						if (t2.getStartTime().equals("900") || t2.getStartTime().equals("1000")) return true;
+					case "1100":
+						if (t2.getStartTime().equals("1100") || t2.getStartTime().equals("1200")) return true;
+					case "1230":
+						if (t2.getStartTime().equals("1200") || t2.getStartTime().equals("1300")) return true;
+					case "1400":
+						if (t2.getStartTime().equals("1400") || t2.getStartTime().equals("1500")) return true;
+					case "1530":
+						if (t2.getStartTime().equals("1500") || t2.getStartTime().equals("1600")) return true;
+					case "1700":
+						if (t2.getStartTime().equals("1700") || t2.getStartTime().equals("1800")) return true;
+					case "1830":
+						if (t2.getStartTime().equals("1800") || t2.getStartTime().equals("1900")) return true;
+					default: break;
+				}
+			}
+		} else if (t1 instanceof PracticeSlot && t2 instanceof GameSlot) {
+			if (t1.getDay() == Day.MO && t2.getDay() == Day.MO) { 
+				if (t1.getStartTime().equals(t2.getStartTime())) return true;
+			} else if (t1.getDay() == Day.FR && t2.getDay() == Day.MO) { 
+				switch(t1.getStartTime()) {
+				case "800":
+					if (t2.getStartTime().equals("800") || t2.getStartTime().equals("900")) return true;
+				case "1000":
+					if (t2.getStartTime().equals("1000") || t2.getStartTime().equals("1100")) return true;
+				case "1200":
+					if (t2.getStartTime().equals("1200") || t2.getStartTime().equals("1300")) return true;
+				case "1400":
+					if (t2.getStartTime().equals("1400") || t2.getStartTime().equals("1500")) return true;
+				case "1600":
+					if (t2.getStartTime().equals("1600") || t2.getStartTime().equals("1700")) return true;	
+				case "1800":
+					if (t2.getStartTime().equals("1800") || t2.getStartTime().equals("1900")) return true;
+				default: break;
+			}
+		} else if (t1.getDay() == Day.TU && t2.getDay() == Day.TU) {
+				switch(t1.getStartTime()) {
+					case "800":
+						if (t2.getStartTime().equals("800")) return true;
+					case "900":
+						if (t2.getStartTime().equals("800") || t2.getStartTime().equals("930")) return true;
+					case "1000":
+						if (t2.getStartTime().equals("930")) return true;
+					case "1100":
+						if (t2.getStartTime().equals("1100")) return true;
+					case "1200":
+						if (t2.getStartTime().equals("1100") || t2.getStartTime().equals("1230")) return true;
+					case "1300":
+						if (t2.getStartTime().equals("1230")) return true;
+					case "1400":
+						if (t2.getStartTime().equals("1400")) return true;
+					case "1500":
+						if (t2.getStartTime().equals("1400") || t2.getStartTime().equals("1530")) return true;
+					case "1600":
+						if (t2.getStartTime().equals("1530")) return true;
+					case "1700":
+						if (t2.getStartTime().equals("1700")) return true;
+					case "1800":
+						if (t2.getStartTime().equals("1700") || t2.getStartTime().equals("1830")) return true;
+					case "1900":
+						if (t2.getStartTime().equals("1830")) return true;
+					default: break;
+				}
+			}
+		}
+		return false;
 	}
 	
 	public int evaluate(Individual schedule) {
@@ -409,51 +545,64 @@ public class Individual {
 		int evalPref = 0; 		// total penalties from not satisfying preferences
 		int evalPair = 0; 		// total penalties from not satisfying pairs
 		int evalSecdiff = 0; 	// total penalties from overlapping divisions
+		
+		Map<TimeSlot, List<Assignable>> transformScheduleTimeSlot = transformScheduleTimeSlot(scheduleList);
+		Map<Assignable, TimeSlot> transformScheduleAssignable = transformScheduleAssignable(scheduleList);
 
 		// Part 1: Eval_minfill(assign) function
-		int gameSlotScore = 0; // keeps track of penalties per game slot
+//		int gameSlotScore = 0; // keeps track of penalties per game slot
 		int gameSlotTotal = 0; // keeps track of penalties for all game slots in a schedule
-
-		// loop through all game slots and compare number of assigned games to the slot's min 
-		for (int i =0; i < n_gameslots; i++){
-			int assignedGames = 0; 							// keeps track of assigned games to current slot 
-			int gameslotMin = prob.gameSlots.get(i).getMin(); 	// keeps track of a slot's min games (i.e. gamemin(s))
-
-			// loop through schedule to find all games assigned to current game slot
-			for (int j=0; j < scheduleList.size(); j++){
-				if (scheduleList.get(j).second.equals(prob.gameSlots.get(i))){
-					assignedGames += 1;
-				}
-			}
-
-			// add a pen_gamemin for every game under the slot's min
-			if (assignedGames < gameslotMin) {
-				gameSlotScore = (gameslotMin - assignedGames) * prob.getPenGameMin();
-				gameSlotTotal += gameSlotScore;
-			}	
-		}
-
-		int practiceSlotScore = 0; // keeps track of penalties per practice slot
+//		int practiceSlotScore = 0; // keeps track of penalties per practice slot
 		int practiceSlotTotal = 0; // keeps track of penalties for all game slots in a schedule
-
-		// loop through all practice slots and compare number of assigned practices to the slot's min
-		for (int i=0; i < n_practiceslots; i++){
-			int assignedPractices = 0; 								// keeps track of assigned practices to current slot 
-			int practiceSlotMin = prob.practiceSlots.get(i).getMin(); 	// keeps track of a slot's min practices (i.e. practicemin(s))
-
-			for (int j=0; j < scheduleList.size(); j++){
-				if (scheduleList.get(j).second.equals(prob.practiceSlots.get(i))){
-					assignedPractices += 1;
+		
+		for (TimeSlot slot : transformScheduleTimeSlot.keySet()) {
+			if (slot instanceof GameSlot) {
+				if (transformScheduleTimeSlot.get(slot).size() < slot.getMin()) {
+					gameSlotTotal += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenGameMin();;
+				}
+			} else {
+				if (transformScheduleTimeSlot.get(slot).size() < slot.getMin()) {
+					practiceSlotTotal += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenPracticeMin();;
 				}
 			}
-
-			
-			// add a pen_practicemin for every practice under the slot's min
-			if (assignedPractices < practiceSlotMin) {
-				practiceSlotScore = (practiceSlotMin - assignedPractices) * prob.getPenPracticeMin();
-				practiceSlotTotal += practiceSlotScore;
-			}
 		}
+
+//		// loop through all game slots and compare number of assigned games to the slot's min 
+//		for (int i = 0; i < nGameslots; i++){
+//			int assignedGames = 0; 							// keeps track of assigned games to current slot 
+//			int gameslotMin = prob.gameSlots.get(i).getMin(); 	// keeps track of a slot's min games (i.e. gamemin(s))
+//
+//			// loop through schedule to find all games assigned to current game slot
+//			for (int j = 0; j < scheduleList.size(); j++){
+//				if (scheduleList.get(j).second.equals(prob.gameSlots.get(i))){
+//					assignedGames += 1;
+//				}
+//			}
+//
+//			// add a pen_gamemin for every game under the slot's min
+//			if (assignedGames < gameslotMin) {
+//				gameSlotScore = (gameslotMin - assignedGames) * prob.getPenGameMin();
+//				gameSlotTotal += gameSlotScore;
+//			}	
+//		}
+
+//		// loop through all practice slots and compare number of assigned practices to the slot's min
+//		for (int i = 0; i < nPracticeslots; i++){
+//			int assignedPractices = 0; 								// keeps track of assigned practices to current slot 
+//			int practiceSlotMin = prob.practiceSlots.get(i).getMin(); 	// keeps track of a slot's min practices (i.e. practicemin(s))
+//
+//			for (int j = 0; j < scheduleList.size(); j++){
+//				if (scheduleList.get(j).second.equals(prob.practiceSlots.get(i))){
+//					assignedPractices += 1;
+//				}
+//			}
+//
+//			// add a pen_practicemin for every practice under the slot's min
+//			if (assignedPractices < practiceSlotMin) {
+//				practiceSlotScore = (practiceSlotMin - assignedPractices) * prob.getPenPracticeMin();
+//				practiceSlotTotal += practiceSlotScore;
+//			}
+//		}
 
 		// total penalty points: Eval_minfill(assign) * w_minfilled
 		evalMinfilled = (gameSlotTotal + practiceSlotTotal) * prob.getwMinFilled();
@@ -466,14 +615,14 @@ public class Individual {
 
 		// loop through preferences to get total used ranking points? are we keeping list of preferences?
 		// if hashmap not empty, add preference
-		for (int i=0; i < scheduleList.size(); i++){
+		for (int i = 0; i < scheduleList.size(); i++){
 			for (Integer points : scheduleList.get(i).first.preferences.values()){
 				totalPoints += points;
 			}
 		}
 
 		// loop through schedule to get assigned games/practices and get assigned points
-		for (int i=0; i < scheduleList.size(); i++){
+		for (int i = 0; i < scheduleList.size(); i++){
 			if (!scheduleList.get(i).first.preferences.isEmpty()){
 				if(scheduleList.get(i).first.preferences.containsKey(scheduleList.get(i).second)){
 					assignedPoints += scheduleList.get(i).first.preferences.get(scheduleList.get(i).second);
@@ -485,13 +634,12 @@ public class Individual {
 		evalPref = (totalPoints - assignedPoints) * prob.getwPref();
 
 		// Part 3: Eval_pair(assign) function
-		Map<TimeSlot, List<Assignable>> transformSchedule = transformSchedule(scheduleList);
-
 		// loop through schedule to get pairs
 		for (Pair assigned : scheduleList) {
 			if (!assigned.first.pair.isEmpty()) {
-				for (Assignable assignInSlot : transformSchedule.get(assigned.second)) {
-					if (!assigned.first.pair.contains(assignInSlot)) {
+				for (Assignable assignInSlot : transformScheduleTimeSlot.get(assigned.second)) {
+					if (!assigned.first.pair.contains(assignInSlot) || 
+							!isOverlap(assigned.second, transformScheduleAssignable.get(assignInSlot))) {
 						evalPair += prob.getPenNotPaired();
 					}
 				}
@@ -506,7 +654,7 @@ public class Individual {
 			int ageGroup = assigned.first.getAgeGroup();
 			int tier = assigned.first.getTier();
 			if (assigned.first instanceof Game) {
-				for (Assignable assignInSlot : transformSchedule.get(assigned.second)) {
+				for (Assignable assignInSlot : transformScheduleTimeSlot.get(assigned.second)) {
 					if (assignInSlot instanceof Game && assignInSlot.getAgeGroup() == ageGroup && assignInSlot.getTier() == tier) {
 						evalSecdiff += prob.getPenSection();						
 					}
@@ -523,7 +671,15 @@ public class Individual {
 		return fitness;
 	}
 	
-	private Map<TimeSlot, List<Assignable>> transformSchedule(ArrayList<Pair> schedule) {
+	private Map<Assignable, TimeSlot> transformScheduleAssignable(ArrayList<Pair> schedule) {
+		HashMap<Assignable, TimeSlot> transformedSchedule = new HashMap<Assignable, TimeSlot>();
+		for (Pair assigned : schedule) {
+			transformedSchedule.put(assigned.first, assigned.second);
+		}
+		return transformedSchedule;
+	}
+	
+	private Map<TimeSlot, List<Assignable>> transformScheduleTimeSlot(ArrayList<Pair> schedule) {
 		Map<TimeSlot, List<Assignable>> transformedSchedule = new HashMap<TimeSlot, List<Assignable>>();
 		for (Pair assigned : schedule) {
 			if (transformedSchedule.containsKey(assigned.second)) {
@@ -550,8 +706,9 @@ public class Individual {
 		
 		for (Pair assigned : scheduleInPair) {
 			output.append(assigned.first);
-			output.append(" :");
+			output.append(": ");
 			output.append(assigned.second);
+			output.append("\n");
 		}
 		
 		return output.toString();

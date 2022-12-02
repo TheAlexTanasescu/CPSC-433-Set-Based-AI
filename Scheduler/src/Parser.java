@@ -10,17 +10,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Parser {
-	String args[];
-	Problem prob;
-	Pattern ageTierPattern;
-	Pattern gamePattern;
-	Pattern practicePattern;
-	Pattern assignablePattern;
-	Pattern notCompatiblePattern;
-	Pattern unwantedPattern;
-	Pattern preferencesPattern;
-	Pattern pairPattern;
-	Pattern partialAssignPattern;
+	private String args[];
+	private Problem prob;
+	private int totalAvailableSlotsFromInput = 0;
+	private Pattern ageTierPattern;
+	private Pattern gamePattern;
+	private Pattern practicePattern;
+	private Pattern assignablePattern;
+	private Pattern notCompatiblePattern;
+	private Pattern unwantedPattern;
+	private Pattern preferencesPattern;
+	private Pattern pairPattern;
+	private Pattern partialAssignPattern;
 
 	public Parser(String[] args) throws FileNotFoundException {
 		this.args = args;
@@ -29,8 +30,8 @@ public class Parser {
 	public Problem parse() {
 		// parse command line weight and penalties
 		// population size needs to be greater than 2, if no entry or input <= 2, use default value
-		int maxGenerations = 5;
-		int populationSize = 10;
+		int maxGenerations = 3;
+		int populationSize = 3;
 		int fitnessThreshold = 30;
 		
 		ArrayList<Integer> parsed = new ArrayList<>();
@@ -89,9 +90,23 @@ public class Parser {
 		partialAssignPattern = Pattern.compile("^[\\s]*([0-9A-Za-z\\s]*)[\\s]*,[\\s]*([A-Z]{2})[\\s]*,[\\s]*([0-9]{1,2}:[0-9]{2})[\\s]*");
 		parseBuffer(args[0]);
 		
+		prob.setMaxSlots(totalAvailableSlotsFromInput);
+		
+//		for (TimeSlot slot : prob.gameSlots) {
+//			System.out.println(slot);
+//		}
+//		
+//		for (TimeSlot slot : prob.practiceSlots) {
+//			System.out.println(slot);
+//		}
+		
 		return prob;
 	}
 	
+	public int getTotalAvailableSlotsFromInput() {
+		return totalAvailableSlotsFromInput;
+	}
+
 	private void timeSlotsMWF(Day day, int start, int inc, String type) {
 		int endMWF = 2000;
 		
@@ -100,8 +115,14 @@ public class Parser {
 				prob.gameSlots.add(new GameSlot(day, Integer.toString(i)));
 			}
 		} else if (type.equals("practice")) {
-			for (int i = start; i <= endMWF; i += inc) {
-				prob.practiceSlots.add(new PracticeSlot(day, Integer.toString(i)));
+			if (day == Day.FR) {
+				for (int i = start; i < endMWF; i += inc) {
+					prob.practiceSlots.add(new PracticeSlot(day, Integer.toString(i)));
+				}
+			} else {
+				for (int i = start; i <= endMWF; i += inc) {
+					prob.practiceSlots.add(new PracticeSlot(day, Integer.toString(i)));
+				}
 			}
 		}
 	}
@@ -241,8 +262,8 @@ public class Parser {
 		}
 	}
 	
-	private GameSlot parseGameSlot(String identifier) {
-		GameSlot gameSlot = null;
+	private TimeSlot parseGameSlot(String identifier) {
+		GameSlot  gameSlot = null;
 		identifier = identifier.replaceAll("\\s", "");
 		String[] parts = identifier.split(",");
 		if (parts.length > 0) {
@@ -262,12 +283,13 @@ public class Parser {
 			if (gameSlot != null && parts.length == 4) {
 				gameSlot.setMax(Integer.parseInt(parts[2]));
 				gameSlot.setMin(Integer.parseInt(parts[3]));
+				totalAvailableSlotsFromInput += Integer.parseInt(parts[2]);
 			}
 		}
 		return gameSlot;
 	}
 	
-	private PracticeSlot parsePracticeSlot(String identifier) {
+	private TimeSlot parsePracticeSlot(String identifier) {
 		PracticeSlot practiceSlot = null;
 		identifier = identifier.replaceAll("\\s", "");
 		String[] parts = identifier.split(",");
@@ -291,6 +313,7 @@ public class Parser {
 			if (practiceSlot != null && parts.length == 4) {
 				practiceSlot.setMax(Integer.parseInt(parts[2]));
 				practiceSlot.setMin(Integer.parseInt(parts[3]));
+				totalAvailableSlotsFromInput += Integer.parseInt(parts[2]);
 			}
 		}
 		return practiceSlot;
@@ -391,9 +414,11 @@ public class Parser {
 	private void parsePracticeSlots(BufferedReader reader) throws NumberFormatException, IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
-			if (line.length() > 0) {
+			if (line.isEmpty() || line.trim().equals("") || line.trim().equals("\n")) {
+				return;
+			} else {
 				parsePracticeSlot(line);
-			} else return;
+			}
 		}
 	}
 	
