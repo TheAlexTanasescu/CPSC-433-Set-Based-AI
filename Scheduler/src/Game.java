@@ -15,9 +15,9 @@ public class Game extends Assignable {
 		if (other == null) return false;
 		if (!(other instanceof Game)) return false;
 		Game game = (Game) other;
-		if (game.getLeagueId().equals(this.getLeagueId()))  return false;
-		if (game.getDiv()== this.getDiv()) return false;
-		if (game.isSpecial() == this.isSpecial()) return false;
+		if (!game.getLeagueId().equals(this.getLeagueId()))  return false;
+		if (game.getDiv() != this.getDiv()) return false;
+		if (game.isSpecial() != this.isSpecial()) return false;
 
 		return true;
 	}
@@ -26,8 +26,8 @@ public class Game extends Assignable {
 	public String toString() {
 		StringBuilder id = new StringBuilder();
 		id.append(getLeagueId());
-		if (getDiv() < 10) id.append(" Div 0");
-		else id.append(" Div ");
+		if (getDiv() < 10) id.append(" DIV 0");
+		else id.append(" DIV ");
 		id.append(getDiv());
 		
 		return id.toString();

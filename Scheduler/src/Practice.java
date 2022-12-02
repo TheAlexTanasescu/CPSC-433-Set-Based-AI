@@ -28,10 +28,10 @@ public class Practice extends Assignable {
 		if (other == null) return false;
 		if (!(other instanceof Practice)) return false;
 		Practice practice = (Practice) other;
-		if (practice.getLeagueId().equals(this.getLeagueId()))  return false;
-		if (practice.getDiv()== this.getDiv()) return false;
-		if (practice.getPracId() == this.getPracId()) return false;
-		if (practice.isPrac() == this.isPrac()) return false;
+		if (!practice.getLeagueId().equals(this.getLeagueId()))  return false;
+		if (practice.getDiv() != this.getDiv()) return false;
+		if (practice.getPracId() != this.getPracId()) return false;
+		if (practice.isPrac() != this.isPrac()) return false;
 
 		return true;
 	}
@@ -41,7 +41,7 @@ public class Practice extends Assignable {
 		StringBuilder id = new StringBuilder();
 		id.append(getLeagueId());
 		if (getDiv() != -1) {
-			if (getDiv() < 10) id.append(" Div 0");
+			if (getDiv() < 10) id.append(" DIV 0");
 			else id.append(" Div ");
 			id.append(getDiv());
 		}

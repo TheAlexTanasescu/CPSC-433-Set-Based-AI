@@ -47,8 +47,8 @@ public abstract class TimeSlot {
 		if (other == null) return false;
 		if (!(other instanceof TimeSlot)) return false;
 		TimeSlot timeslot = (TimeSlot) other;
-		if (timeslot.getDay().equals(this.day))  return false;
-		if (timeslot.getStartTime().equals(this.startTime)) return false;
+		if (!timeslot.getDay().equals(this.day))  return false;
+		if (!timeslot.getStartTime().equals(this.startTime)) return false;
 		
 		return true;
 	}
@@ -62,6 +62,10 @@ public abstract class TimeSlot {
 		else timeslot.append(startTime.substring(0, 2));
 		timeslot.append(":");
 		timeslot.append(startTime.substring(startTime.length() - 2));
+		timeslot.append(", ");
+		timeslot.append(max);
+		timeslot.append(", ");
+		timeslot.append(min);
 		
 		return timeslot.toString();
 	}

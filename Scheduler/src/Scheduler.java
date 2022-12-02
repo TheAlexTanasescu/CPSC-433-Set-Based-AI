@@ -12,29 +12,28 @@ public class Scheduler {
 		Parser parser = null;
 		try {
 			parser = new Parser(args);
-			Problem prob = parser.parse("/Users/alextanasescu/Desktop/Coding/CPSC-433-Set-Based-AI/Scheduler/src/Scheduler.java");
+			Problem prob = parser.parse();
 
-
-		int ctr;
-		int genCount = 0;
-		
-		Population currentPop = new Population(prob);
-		ctr = currentPop.control();
-		
-		while (genCount < prob.getMaxGenerations()) {
-			if (ctr == 0) {
-				currentPop = currentPop.create();
+			int ctr;
+			int genCount = 0;
+			
+			Population currentPop = new Population(prob);
+			ctr = currentPop.control();
+			
+			while (genCount < prob.getMaxGenerations()) {
+				if (ctr == 0) {
+					currentPop = currentPop.create();
+					
+				} else if (ctr == 1) {
+					currentPop = currentPop.existing();
+				}
 				
-			} else if (ctr == 1) {
-				currentPop = currentPop.existing();
+				if(currentPop.isBestFitFound()) break;
+				genCount++;
 			}
 			
-			if(currentPop.isBestFitFound()) break;
-			genCount++;
-		}
-		
-		result = currentPop.getBestIndividual();
-		scheduler.printResult();
+			result = currentPop.getBestIndividual();
+			scheduler.printResult();
 		} catch (FileNotFoundException e) {
 		}
 		

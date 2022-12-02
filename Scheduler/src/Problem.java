@@ -8,9 +8,10 @@ public class Problem {
 	public ArrayList<PracticeSlot> practiceSlots = new ArrayList<PracticeSlot>();
 	
 	// Environment
-	private int maxGenerations = 5;
-	private int populationSize = 10;
-	private double fitnessThreshold = 0.3;
+	public String problemName;
+	private int maxGenerations;
+	private int populationSize;
+	private double fitnessThreshold;
 	
 	private int wMinFilled;
 	private int wPref;
@@ -33,6 +34,24 @@ public class Problem {
 		this.penPracticeMin = penPracticeMin;
 		this.penNotPaired = penNotPaired;
 		this.penSection = penSection;
+	}
+	
+	public Problem(int wMinFilled, int wPref, int wPair, int wSecDiff, 
+			int penGameMin, int penPracticeMin, int penNotPaired, int penSection, 
+			int maxGenerations, int populationSize, double fitnessThreshold) {
+		this.wMinFilled = wMinFilled;
+		this.wPref = wPref;
+		this.wPair = wPair;
+		this.wSecDiff = wSecDiff;
+		
+		this.penGameMin = penGameMin;
+		this.penPracticeMin = penPracticeMin;
+		this.penNotPaired = penNotPaired;
+		this.penSection = penSection;
+		
+		this.maxGenerations = maxGenerations;
+		this.populationSize = populationSize;
+		this.fitnessThreshold = fitnessThreshold;
 	}
 	
 	public int getIndividualMax() {
