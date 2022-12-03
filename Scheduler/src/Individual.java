@@ -23,8 +23,8 @@ public class Individual {
 	private Integer[] allGTS;
 	private Integer[] allPTS;
 	
-	int sg = 0;
-	int sp = 0;
+	private int sg = 0;
+	private int sp = 0;
 
 	public Individual(Problem prob) {
 		this.prob = prob;

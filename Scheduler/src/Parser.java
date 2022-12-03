@@ -175,7 +175,10 @@ public class Parser {
 					case "Preferences:": parsePreferences(reader); break;
 					case "Pair:": parsePair(reader); break;
 					case "Partial assignments:": parsePartialAssignments(reader); break;
-					default: break;
+					default: 
+						if (line.length() > 0)
+							throw new IllegalArgumentException(String.format("Cannot parse line: %s", line));
+						else break;
 				}
 			}
 //			for (TimeSlot slot : prob.gameSlots) {
