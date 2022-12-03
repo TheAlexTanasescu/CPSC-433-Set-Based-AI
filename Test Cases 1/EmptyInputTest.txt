@@ -1,0 +1,20 @@
+Name:
+Empty Input Test
+
+Game slots:
+
+Practice slots:
+
+Games:
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:

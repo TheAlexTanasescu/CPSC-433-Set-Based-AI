@@ -1,0 +1,26 @@
+Name:
+PracticemaxTest
+
+Game slots:
+
+Practice slots:
+MO, 8:00, 3, 0
+WE, 8:00, 3, 0
+
+Games:
+
+Practices:
+CSMA U13T3 DIV 01 PRC 01
+CSMA U13T3 DIV 02 OPN 02
+CUSA O18 DIV 01 PRC 01
+CSMA U17T1 PRC 01
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:

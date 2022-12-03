@@ -1,0 +1,29 @@
+Name:
+NotCompatibleTest
+
+Game slots:
+MO, 8:00, 3, 0
+WE, 8:00,3,0
+FR, 8:00, 3, 0
+
+Practice slots:
+
+Games:
+CSMA U13T3 DIV 01
+CSMA U13T3 DIV 02
+CSMA U17T1 DIV 01
+
+
+Practices:
+
+Not compatible:
+CSMA U17T1 DIV 01, CSMA U13T3 DIV 01
+CSMA U17T1 DIV 01, CSMA U13T3 DIV 02
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:

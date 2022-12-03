@@ -1,0 +1,24 @@
+Name:
+TuesThursGameTest
+
+Game slots:
+TU, 8:00, 3, 0
+
+Practice slots:
+
+Games:
+CSMA U13T3 DIV 01
+CSMA U13T3 DIV 02
+CUSA O18 DIV 01
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:

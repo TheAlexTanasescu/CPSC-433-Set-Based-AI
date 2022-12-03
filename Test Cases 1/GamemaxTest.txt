@@ -1,0 +1,25 @@
+Name:
+GamemaxTest
+
+Game slots:
+MO, 8:00, 1, 0
+WE, 8:00, 1, 0
+FR, 8:00, 1, 0
+
+Practice slots:
+
+Games:
+CSMA U13T3 DIV 01
+CSMA U13T3 DIV 02
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:
