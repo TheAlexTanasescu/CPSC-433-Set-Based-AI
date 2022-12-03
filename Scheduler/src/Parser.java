@@ -262,8 +262,8 @@ public class Parser {
 		}
 	}
 	
-	private TimeSlot parseGameSlot(String identifier) {
-		GameSlot  gameSlot = null;
+	private GameSlot parseGameSlot(String identifier) {
+		GameSlot gameSlot = null;
 		identifier = identifier.replaceAll("\\s", "");
 		String[] parts = identifier.split(",");
 		if (parts.length > 0) {
@@ -289,7 +289,7 @@ public class Parser {
 		return gameSlot;
 	}
 	
-	private TimeSlot parsePracticeSlot(String identifier) {
+	private PracticeSlot parsePracticeSlot(String identifier) {
 		PracticeSlot practiceSlot = null;
 		identifier = identifier.replaceAll("\\s", "");
 		String[] parts = identifier.split(",");

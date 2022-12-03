@@ -8,7 +8,7 @@ public abstract class TimeSlot {
 	public TimeSlot(Day day, String time) {
 		this.day = day;
 		this.startTime = time;
-		if (Integer.parseInt(startTime) > 1800) {
+		if (Integer.parseInt(startTime) >= 1800) {
 			isEvening = true;
 		}
 	}

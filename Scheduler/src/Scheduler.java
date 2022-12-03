@@ -16,27 +16,32 @@ public class Scheduler {
 
 			int ctr;
 			int genCount = 0;
-			
+			boolean noValid = false;
 			Population currentPop = new Population(prob);
 			ctr = currentPop.control();
 //			System.out.println(ctr);
 			
-			while (genCount <= prob.getMaxGenerations()) {
+			while (genCount <= prob.getMaxGenerations() && !noValid) {
 				if (ctr == 0) {
 					currentPop = currentPop.create();
-					
+					if (currentPop == null) {
+						noValid = true;
+						break;
+					}
 				} else if (ctr == 1) {
 					currentPop = currentPop.existing();
 				}
 				
-				if(currentPop.isBestFitFound()) break;
+				if (currentPop.isBestFitFound()) break;
+				ctr = currentPop.control();
 				genCount++;
 			}
 //			System.out.println(genCount);
 			
-			result = currentPop.getBestIndividual();
+			if (!noValid) result = currentPop.getBestIndividual();
 			scheduler.printResult();
 		} catch (FileNotFoundException e) {
+			
 		}
 		
 	}

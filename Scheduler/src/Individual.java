@@ -3,9 +3,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class Individual {
 	private Problem prob;
@@ -122,6 +124,7 @@ public class Individual {
 	}
 	
 	private TimeSlot gameSlotChoice(Assignable toAssign) {
+		TimeSlot slot;
 		int randSlot;
 		
 		if (toAssign.isSpecial()) {
@@ -134,10 +137,19 @@ public class Individual {
 		
 		if (!toAssign.unwanted.isEmpty()) {
 			randSlot = rand.nextInt(nGameslots);
-			TimeSlot slot = prob.gameSlots.get(randSlot);
+			slot = prob.gameSlots.get(randSlot);
 			while (toAssign.unwanted.contains(slot) || slot.getMax() == 0) {
 				randSlot = rand.nextInt(nGameslots);
 				slot = prob.gameSlots.get(randSlot);
+			}
+			return slot;
+		}
+		
+		if (!toAssign.preferences.isEmpty()) {
+			List<TimeSlot> keysAsArray = new ArrayList<TimeSlot>(toAssign.preferences.keySet());
+			slot = keysAsArray.get(rand.nextInt(keysAsArray.size()));
+			while (slot.getMax() == 0) {
+				slot = keysAsArray.get(rand.nextInt(keysAsArray.size()));
 			}
 			return slot;
 		}
@@ -163,6 +175,15 @@ public class Individual {
 			while (toAssign.unwanted.contains(slot) || slot.getMax() == 0) {
 				randSlot = rand.nextInt(nPracticeslots);
 				slot = prob.practiceSlots.get(randSlot);
+			}
+			return slot;
+		}
+		
+		if (!toAssign.preferences.isEmpty()) {
+			List<TimeSlot> keysAsArray = new ArrayList<TimeSlot>(toAssign.preferences.keySet());
+			slot = keysAsArray.get(rand.nextInt(keysAsArray.size()));
+			while (slot.getMax() == 0) {
+				slot = keysAsArray.get(rand.nextInt(keysAsArray.size()));
 			}
 			return slot;
 		}
@@ -248,20 +269,21 @@ public class Individual {
 			// select a slot to proceed (predefined or random)
 			TimeSlot toAssign = givenSchedule.get(assignable);
 //			System.out.println(toAssign);
-			if (toAssign != null) {
+			if (toAssign == null) {
 				toAssign = getNextSlot(assignable);
 			}
 			
 //			System.out.println(n_gameslots + " + " + n_practiceslots);
 			
 			// loop until a valid slot is found or no valid slot can be found for current assignable
-			while (sg < nGameslots && sp < nPracticeslots) {
+			while (sg <= nGameslots || sp <= nPracticeslots) {
+//				System.out.println(sg + ": " + sp);
 				// can't find a valid slot for this assignable, go the the next assignable
 				if (sg >= nGameslots || sp >= nPracticeslots) {
 					constr = false;
 					break;
 				}
-//				System.out.println(sg + ": " + sp);
+				
 				// all passed, break and try the next assignable
 				if (passedHardConstr(assignable, toAssign, tempSchedule, searchState)) {
 					searchState.put(assignable, toAssign);
@@ -301,6 +323,17 @@ public class Individual {
 		if (toAssign == null) return false;
 		Day assignDay = toAssign.getDay();
 		String assignTime = toAssign.getStartTime();
+		ArrayList<TimeSlot> overlappingSlots = new ArrayList<TimeSlot>();
+		if (toAssign instanceof GameSlot) {
+			for (TimeSlot overlapped : getOverlappingSlots(toAssign)) {
+				overlappingSlots.add(getPracticeSlot(overlapped));
+			}
+		} else {
+			for (TimeSlot overlapped : getOverlappingSlots(toAssign)) {
+				overlappingSlots.add(getGameSlot(overlapped));
+			}
+		}
+		overlappingSlots.add(toAssign);
 		
 		return 
 		specialCheck(assignable) &&
@@ -311,15 +344,26 @@ public class Individual {
 		maxCheck(assignable, toAssign, tempSchedule) &&
 		specialOverlapCheck(12, 1, assignable, toAssign, tempSchedule) &&
 		specialOverlapCheck(13, 1, assignable, toAssign, tempSchedule) &&
-		divCheck(assignable, toAssign, tempSchedule, searchState) &&
+		divCheck(assignable, tempSchedule, overlappingSlots) &&
 		agetierCheck(assignable, toAssign, tempSchedule) &&
-		notcompatibleCheck(assignable, toAssign, tempSchedule, searchState);
+		notcompatibleCheck(assignable, toAssign, tempSchedule, overlappingSlots);
+	}
+	
+	private GameSlot getGameSlot(TimeSlot toFind) {
+		int index = prob.gameSlots.indexOf(toFind);
+		if (index != -1) return prob.gameSlots.get(index);
+		return null;
+	}
+	
+	private PracticeSlot getPracticeSlot(TimeSlot toFind) {
+		int index = prob.practiceSlots.indexOf(toFind);
+		if (index != -1) return prob.practiceSlots.get(index);
+		return null;
 	}
 	
 	private TimeSlot gameSpecial(Assignable toAssign) {
-		TimeSlot slot = new PracticeSlot(Day.TU, "1800");
-		int index = prob.practiceSlots.indexOf(slot);
-		if (index != -1 && prob.practiceSlots.get(index).getMax() > 0) return prob.practiceSlots.get(index);
+		TimeSlot slot = getPracticeSlot(new PracticeSlot(Day.TU, "1800"));
+		if (slot.getMax() > 0) return slot;
 		return null;
 	}
 	
@@ -371,10 +415,9 @@ public class Individual {
 	
 	private boolean maxCheck(Assignable assignable, TimeSlot toAssign, Map<TimeSlot, List<Assignable>> tempSchedule) {
 		// gamemax, practicemax
-		if (tempSchedule.get(toAssign) != null) {
-			if (toAssign.getMax() == 0 || tempSchedule.get(toAssign).size() >= toAssign.getMax()) {
-				return false;
-			}
+//		System.out.println(tempSchedule.get(toAssign).size() + ", " + toAssign.getMax());
+		if (toAssign.getMax() == 0 || tempSchedule.get(toAssign).size() >= toAssign.getMax()) {
+			return false;
 		}
 		return true;
 	}
@@ -382,7 +425,26 @@ public class Individual {
 	private boolean specialOverlapCheck(int age, int tier, Assignable assignable, TimeSlot toAssign, 
 			Map<TimeSlot, List<Assignable>> tempSchedule) {
 		// if U12T1 / U13T1, check overlap with special
-		if (assignable.getAgeGroup() == age && assignable.getTier() == tier) {
+		// game -> game slot -> might overlap
+		if (assignable instanceof Game && assignable.getAgeGroup() == age && assignable.getTier() == tier) {
+			TimeSlot specialSlot = getPracticeSlot(new PracticeSlot(Day.TU, "1800"));
+			// continue only if prac slot TU 18 has that special age and tier assigned game
+			boolean hasSpecial = false;
+			for (Assignable assigned : tempSchedule.get(specialSlot)) {
+				if (assigned.isSpecial() && assigned.getAgeGroup() == age && assigned.getTier() == tier) hasSpecial = true;
+			}
+	
+			// game slots overlapping prac slot TU 18
+			if (hasSpecial) {
+				ArrayList<TimeSlot> overlappedGameSlots = getOverlappingSlots(specialSlot);
+				for (TimeSlot overlapped : overlappedGameSlots) {
+					for (Assignable assigned : tempSchedule.get(overlapped)) {
+						if (assigned.getAgeGroup() == age && assigned.getTier() == tier) return false;
+					}
+				}
+			}
+		} else if (assignable instanceof Practice && assignable.getAgeGroup() == age && assignable.getTier() == tier) {
+			// prac -> prac slot -> below should be sufficient
 			for (Assignable assigned : tempSchedule.get(toAssign)) {
 				if (assigned.isSpecial() && assigned.getAgeGroup() == age && assignable.getTier() == tier) {
 					return false;
@@ -392,19 +454,21 @@ public class Individual {
 		return true;
 	}
 	
-	private boolean divCheck(Assignable assignable, TimeSlot toAssign, 
-			Map<TimeSlot, List<Assignable>> tempSchedule, Map<Assignable, TimeSlot> searchState) {
+	private boolean divCheck(Assignable assignable, Map<TimeSlot, List<Assignable>> tempSchedule, ArrayList<TimeSlot> overlappingSlots) {
 		// game and practice for the same div are not overlap		
-		for (Assignable assigned : tempSchedule.get(toAssign)) {
-			if (assignable.getDiv() == assigned.getDiv()) {
-				if (assignable.getLeagueId().equals(assigned.getLeagueId()) || isOverlap(toAssign, searchState.get(assigned))) {
-					return false;
-				}
+		Set<String> existed = new HashSet<String>();
+		String current = assignable.getLeagueId() + assignable.getDiv();
+		existed.add(current);
+		for (TimeSlot overlapped : overlappingSlots) {
+			for (Assignable assigned : tempSchedule.get(overlapped)) {
+				current = assigned.getLeagueId() + assigned.getDiv();
+				if (existed.contains(current)) return false;
+				else existed.add(current);
 			}
 		}
 		return true;
 	}
-	
+
 	private boolean agetierCheck(Assignable assignable, TimeSlot toAssign, Map<TimeSlot, List<Assignable>> tempSchedule) {
 		// if U15/U16/U17/U19 game, not overlap with other tiers
 		if (assignable instanceof Game) {
@@ -422,16 +486,179 @@ public class Individual {
 	}
 	
 	private boolean notcompatibleCheck(Assignable assignable, TimeSlot toAssign, 
-			Map<TimeSlot, List<Assignable>> tempSchedule, Map<Assignable, TimeSlot> searchState) {
+			Map<TimeSlot, List<Assignable>> tempSchedule, ArrayList<TimeSlot> overlappingSlots) {
 		// notcompatible
 		if (!assignable.notcompatible.isEmpty()) {
-			for (Assignable assigned : tempSchedule.get(toAssign)) {
-				if (assignable.notcompatible.contains(assigned) || isOverlap(toAssign, searchState.get(assigned))) {
-					return false;
+			for (TimeSlot overlapped : overlappingSlots) {
+				for (Assignable assigned : tempSchedule.get(overlapped)) {
+					if (assignable.notcompatible.contains(assigned)) {
+						return false;
+					}
 				}
 			}
 		}
 		return true;
+	}
+	
+	private ArrayList<TimeSlot> getOverlappingSlots(TimeSlot targetSlot) {
+		ArrayList<TimeSlot> overlappedSlots = new ArrayList<TimeSlot>();
+		if (targetSlot instanceof GameSlot) {
+			if (targetSlot.getDay() == Day.MO) {
+				overlappedSlots.add(new PracticeSlot(Day.MO, targetSlot.getStartTime()));
+				switch(targetSlot.getStartTime()) {
+					case "800":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "800"));
+						break;
+					case "900":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "800"));
+						break;
+					case "1000":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1000"));
+						break;
+					case "1100":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1000"));
+						break;
+					case "1200":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1200"));
+						break;
+					case "1300":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1200"));
+						break;
+					case "1400":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1400"));
+						break;
+					case "1500":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1400"));
+						break;
+					case "1600":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1600"));
+						break;
+					case "1700":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1600"));
+						break;
+					case "1800":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1800"));
+						break;
+					case "1900":
+						overlappedSlots.add(new PracticeSlot(Day.FR, "1800"));
+						break;
+					default: break;
+				}
+			} else if (targetSlot.getDay() == Day.TU) {
+				switch(targetSlot.getStartTime()) {
+					case "800":
+						overlappedSlots.add(new PracticeSlot(Day.TU, "800"));
+						overlappedSlots.add(new PracticeSlot(Day.TU, "900"));
+						break;
+					case "930":
+						overlappedSlots.add(new PracticeSlot(Day.TU, "900"));
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1000"));
+						break;
+					case "1100":
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1100"));
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1200"));
+						break;
+					case "1230":
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1200"));
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1300"));
+						break;
+					case "1400":
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1400"));
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1500"));
+						break;
+					case "1530":
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1500"));
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1600"));
+						break;
+					case "1700":
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1700"));
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1800"));
+						break;
+					case "1830":
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1800"));
+						overlappedSlots.add(new PracticeSlot(Day.TU, "1900"));
+						break;
+					default: break;
+				}
+			}
+		} else if (targetSlot instanceof PracticeSlot) {
+			if (targetSlot.getDay() == Day.MO) {
+				overlappedSlots.add(new GameSlot(Day.MO, targetSlot.getStartTime()));
+			} else if (targetSlot.getDay() == Day.FR) {
+				switch(targetSlot.getStartTime()) {
+					case "800":
+						overlappedSlots.add(new GameSlot(Day.MO, "800"));
+						overlappedSlots.add(new GameSlot(Day.MO, "900"));
+						break;
+					case "1000":
+						overlappedSlots.add(new GameSlot(Day.MO, "1000"));
+						overlappedSlots.add(new GameSlot(Day.MO, "1100"));
+						break;
+					case "1200":
+						overlappedSlots.add(new GameSlot(Day.MO, "1200"));
+						overlappedSlots.add(new GameSlot(Day.MO, "1300"));
+						break;
+					case "1400":
+						overlappedSlots.add(new GameSlot(Day.MO, "1400"));
+						overlappedSlots.add(new GameSlot(Day.MO, "1500"));
+						break;
+					case "1600":
+						overlappedSlots.add(new GameSlot(Day.MO, "1600"));
+						overlappedSlots.add(new GameSlot(Day.MO, "1700"));
+						break;
+					case "1800":
+						overlappedSlots.add(new GameSlot(Day.MO, "1800"));
+						overlappedSlots.add(new GameSlot(Day.MO, "1900"));
+						break;
+					default: break;
+				}
+			} else if (targetSlot.getDay() == Day.TU) {
+				switch(targetSlot.getStartTime()) {
+					case "800":
+						overlappedSlots.add(new GameSlot(Day.TU, "800"));
+						break;
+					case "900":
+						overlappedSlots.add(new GameSlot(Day.TU, "800"));
+						overlappedSlots.add(new GameSlot(Day.TU, "930"));
+						break;
+					case "1000":
+						overlappedSlots.add(new GameSlot(Day.TU, "930"));
+						break;
+					case "1100":
+						overlappedSlots.add(new GameSlot(Day.TU, "1100"));
+						break;
+					case "1200":
+						overlappedSlots.add(new GameSlot(Day.TU, "1100"));
+						overlappedSlots.add(new GameSlot(Day.TU, "1230"));
+						break;
+					case "1300":
+						overlappedSlots.add(new GameSlot(Day.TU, "1230"));
+						break;
+					case "1400":
+						overlappedSlots.add(new GameSlot(Day.TU, "1400"));
+						break;
+					case "1500":
+						overlappedSlots.add(new GameSlot(Day.TU, "1400"));
+						overlappedSlots.add(new GameSlot(Day.TU, "1530"));
+						break;
+					case "1600":
+						overlappedSlots.add(new GameSlot(Day.TU, "1530"));
+						break;
+					case "1700":
+						overlappedSlots.add(new GameSlot(Day.TU, "1700"));
+						break;
+					case "1800":
+						overlappedSlots.add(new GameSlot(Day.TU, "1700"));
+						overlappedSlots.add(new GameSlot(Day.TU, "1830"));
+						break;
+					case "1900":
+						overlappedSlots.add(new GameSlot(Day.TU, "1830"));
+						break;
+					default: break;
+				}
+			}
+		}
+		return overlappedSlots;
 	}
 	
 	private boolean isOverlap(TimeSlot t1, TimeSlot t2) {
@@ -550,63 +777,20 @@ public class Individual {
 		Map<Assignable, TimeSlot> transformScheduleAssignable = transformScheduleAssignable(scheduleList);
 
 		// Part 1: Eval_minfill(assign) function
-//		int gameSlotScore = 0; // keeps track of penalties per game slot
-		int gameSlotTotal = 0; // keeps track of penalties for all game slots in a schedule
-//		int practiceSlotScore = 0; // keeps track of penalties per practice slot
-		int practiceSlotTotal = 0; // keeps track of penalties for all game slots in a schedule
-		
 		for (TimeSlot slot : transformScheduleTimeSlot.keySet()) {
 			if (slot instanceof GameSlot) {
 				if (transformScheduleTimeSlot.get(slot).size() < slot.getMin()) {
-					gameSlotTotal += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenGameMin();;
+					evalMinfilled += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenGameMin();;
 				}
 			} else {
 				if (transformScheduleTimeSlot.get(slot).size() < slot.getMin()) {
-					practiceSlotTotal += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenPracticeMin();;
+					evalMinfilled += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenPracticeMin();;
 				}
 			}
 		}
-
-//		// loop through all game slots and compare number of assigned games to the slot's min 
-//		for (int i = 0; i < nGameslots; i++){
-//			int assignedGames = 0; 							// keeps track of assigned games to current slot 
-//			int gameslotMin = prob.gameSlots.get(i).getMin(); 	// keeps track of a slot's min games (i.e. gamemin(s))
-//
-//			// loop through schedule to find all games assigned to current game slot
-//			for (int j = 0; j < scheduleList.size(); j++){
-//				if (scheduleList.get(j).second.equals(prob.gameSlots.get(i))){
-//					assignedGames += 1;
-//				}
-//			}
-//
-//			// add a pen_gamemin for every game under the slot's min
-//			if (assignedGames < gameslotMin) {
-//				gameSlotScore = (gameslotMin - assignedGames) * prob.getPenGameMin();
-//				gameSlotTotal += gameSlotScore;
-//			}	
-//		}
-
-//		// loop through all practice slots and compare number of assigned practices to the slot's min
-//		for (int i = 0; i < nPracticeslots; i++){
-//			int assignedPractices = 0; 								// keeps track of assigned practices to current slot 
-//			int practiceSlotMin = prob.practiceSlots.get(i).getMin(); 	// keeps track of a slot's min practices (i.e. practicemin(s))
-//
-//			for (int j = 0; j < scheduleList.size(); j++){
-//				if (scheduleList.get(j).second.equals(prob.practiceSlots.get(i))){
-//					assignedPractices += 1;
-//				}
-//			}
-//
-//			// add a pen_practicemin for every practice under the slot's min
-//			if (assignedPractices < practiceSlotMin) {
-//				practiceSlotScore = (practiceSlotMin - assignedPractices) * prob.getPenPracticeMin();
-//				practiceSlotTotal += practiceSlotScore;
-//			}
-//		}
-
+		
 		// total penalty points: Eval_minfill(assign) * w_minfilled
-		evalMinfilled = (gameSlotTotal + practiceSlotTotal) * prob.getwMinFilled();
-
+		evalMinfilled *= prob.getwMinFilled();
 
 		// Part 2: Eval_pref(assign) function
 		// note: pen_preferred = total points - fulfilled points
@@ -637,11 +821,8 @@ public class Individual {
 		// loop through schedule to get pairs
 		for (Pair assigned : scheduleList) {
 			if (!assigned.first.pair.isEmpty()) {
-				for (Assignable assignInSlot : transformScheduleTimeSlot.get(assigned.second)) {
-					if (!assigned.first.pair.contains(assignInSlot) || 
-							!isOverlap(assigned.second, transformScheduleAssignable.get(assignInSlot))) {
-						evalPair += prob.getPenNotPaired();
-					}
+				for (Assignable pairing : assigned.first.pair) {
+					if (!isOverlap(transformScheduleAssignable.get(pairing), assigned.second)) evalPair += prob.getPenNotPaired();
 				}
 			}
 		}
@@ -651,11 +832,11 @@ public class Individual {
 
 		// Part 4: Eval_secdiff(assign) function 
 		for (Pair assigned : scheduleList) {
-			int ageGroup = assigned.first.getAgeGroup();
-			int tier = assigned.first.getTier();
 			if (assigned.first instanceof Game) {
+				int ageGroup = assigned.first.getAgeGroup();
+				int tier = assigned.first.getTier();
 				for (Assignable assignInSlot : transformScheduleTimeSlot.get(assigned.second)) {
-					if (assignInSlot instanceof Game && assignInSlot.getAgeGroup() == ageGroup && assignInSlot.getTier() == tier) {
+					if (!assignInSlot.equals(assigned.first) && assignInSlot.getAgeGroup() == ageGroup && assignInSlot.getTier() == tier) {
 						evalSecdiff += prob.getPenSection();						
 					}
 				}

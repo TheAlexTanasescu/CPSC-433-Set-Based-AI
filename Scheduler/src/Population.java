@@ -47,7 +47,7 @@ public class Population {
 					isBestFitFound = true;
 					break;
 				}
-			}
+			} else return null;
 		}
 		return this;
 	}
@@ -94,7 +94,7 @@ public class Population {
 			fitnesses.add(fitnessTotal - idv.getFitness());
 		}
 		int sum = fitnesses.stream().mapToInt(Integer::intValue).sum();
-		fitnesses.stream().map(n -> (n / sum) * 100);
+		fitnesses.stream().map(n -> (n / sum) * 100); // not working
 		return fitnesses;
 	}
 
