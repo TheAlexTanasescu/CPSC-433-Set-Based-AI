@@ -1,5 +1,5 @@
 Name:
-NotCompatibleTest
+NotCompatibleTest2
 
 Game slots:
 MO, 8:00, 3, 0

@@ -352,7 +352,7 @@ public class Individual {
 	private boolean meetingCheck(Assignable assignable, Day assignDay, String assignTime) {
 		// if game, not on TU, 11:00
 		if (assignable instanceof Game) {
-			if (assignDay == Day.TU && assignTime == "1100") {
+			if (assignDay == Day.TU && assignTime.equals("1100")) {
 				return false;
 			}
 		}
