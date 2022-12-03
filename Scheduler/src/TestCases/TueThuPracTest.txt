@@ -1,0 +1,33 @@
+Name:
+TueThuPracTest 
+
+Game slots: 
+MO, 8:00, 1, 1 
+TU, 9:30, 2, 1
+FR, 8:00. 1, 1
+
+Practice slots:
+TU, 9:30, 3, 1
+FR, 10:00, 1, 0
+
+Games:
+CSMA U13T3 DIV 01
+CUSA O18 DIV 01
+CSMA U17T1 DIV 01
+
+Practices:
+CSMA U13T3 DIV 01 PRC 01
+CUSA O18 DIV 01 PRC 01
+CSMA U17T1 PRC 01
+CSMA U12T1 DIV 01 PRC 01 
+
+Not Compatible:
+
+Unwanted: 
+
+Preferences: 
+
+Pair: 
+
+Partial Assignments: 
+

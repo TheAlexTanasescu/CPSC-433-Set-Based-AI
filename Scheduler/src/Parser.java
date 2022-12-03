@@ -164,17 +164,20 @@ public class Parser {
 	public void parseBuffer(String filename) {
 		try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
 			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-				switch (line) {
-					case "Name:": parseName(reader); break;
-					case "Game slots:": parseGameSlots(reader); break;
-					case "Practice slots:": parsePracticeSlots(reader); break;
-					case "Games:": parseGames(reader); break;
-					case "Practices:": parsePractices(reader); break;
-					case "Not compatible:": parseNotCompatible(reader); break;
-					case "Unwanted:": parseUnwanted(reader); break;
-					case "Preferences:": parsePreferences(reader); break;
-					case "Pair:": parsePair(reader); break;
-					case "Partial assignments:": parsePartialAssignments(reader); break;
+				if (line != null){
+					line = line.stripTrailing().toLowerCase();
+				}
+				switch (line) {	
+					case "name:": parseName(reader); break;
+					case "game slots:": parseGameSlots(reader); break;
+					case "practice slots:": parsePracticeSlots(reader); break;
+					case "games:": parseGames(reader); break;
+					case "practices:": parsePractices(reader); break;
+					case "not compatible:": parseNotCompatible(reader); break;
+					case "unwanted:": parseUnwanted(reader); break;
+					case "preferences:": parsePreferences(reader); break;
+					case "pair:": parsePair(reader); break;
+					case "partial assignments:": parsePartialAssignments(reader); break;
 					default: 
 						if (line.length() > 0)
 							throw new IllegalArgumentException(String.format("Cannot parse line: %s", line));

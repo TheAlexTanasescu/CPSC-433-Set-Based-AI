@@ -1,22 +1,19 @@
-Name: U15-U16-U17-U19GamesTest
+Name: 
+U15-U16-U17-U19GamesTest
 
 Game slots: 
 MO, 8:00, 1, 1 
 TU, 9:30, 2, 1
-WE, 8:00, 1, 1
-TH, 9:30, 2, 1
-FR, 8:00. 1, 1
+
 
 Practice slots: 
 MO, 8:00, 4, 2 
 TU, 9:30, 2, 1
-WE, 8:00, 2, 1
-TH, 9:30, 2, 1
 FR, 10:00, 2, 1 
 
 Games: 
 CSMA U15T3 DIV 01 
-CUSA U15T1 DIV 01 
+CSMA U15T1 DIV 01 
 CSMA U17T1 DIV 01 
 
 Practices: 
@@ -26,7 +23,8 @@ CSMA U17T1 PRC 01
 
 Not Compatible: 
 
-Unwanted: 
+Unwanted:
+CSMA U17T1 DIV 01, TU, 9:30
 
 Preferences: 
 
