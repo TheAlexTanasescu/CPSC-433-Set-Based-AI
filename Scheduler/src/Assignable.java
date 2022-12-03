@@ -79,21 +79,7 @@ public abstract class Assignable {
 		return isSpecial;
 	}
 	
-//	public Assignable(Assignable[] notcompatiables, TimeSlot[] unwanted, TimeSlot partAssign, 
-//			Map<TimeSlot, Double> preferences, Assignable[] pair) {
-//		
-//		for (Assignable assignable : notcompatiables) {
-//			super.notcompatible.add(assignable);
-//		}
-//		
-//		for (TimeSlot timeslot : unwanted) {
-//			super.unwanted.add(timeslot);
-//		}
-//		
-//		super.preferences.putAll(preferences);
-//		
-//		for (Assignable assignable : pair) {
-//			super.pair.add(assignable);
-//		}
-//	}
+	public int getStringLength() {
+		return 0;		
+	}
 }

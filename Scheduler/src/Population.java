@@ -36,8 +36,6 @@ public class Population {
 	public Population create() {
 		populationList = new ArrayList<Individual>();
 		Individual randSche;
-//		System.out.println(populationList.size());
-//		System.out.println(prob.getPopulationSize());
 		while (populationList.size() < prob.getPopulationSize()) {
 			randSche = new Individual(prob);
 			randSche.random();
@@ -58,10 +56,10 @@ public class Population {
 
 		// ensuring that better fitted schedule has higher probably being selected
 		RandomCollection<Individual> rc = new RandomCollection<Individual>();
-		List<Integer> weights = calculateWeights(currentPop);
+		int[] weights = calculateWeights(currentPop);
 		
 		for (int i = 0; i < currentPop.size(); i++) {
-			rc.add(weights.get(i), currentPop.get(i));
+			rc.add(weights[i], currentPop.get(i));
 		}
 		
 		// select a random schedule and perform mutation or crossover
@@ -87,15 +85,14 @@ public class Population {
 		return this;
 	}
 	
-	private List<Integer> calculateWeights(List<Individual> individual) {
+	private int[] calculateWeights(List<Individual> individual) {
 		List<Integer> fitnesses = new ArrayList<Integer>();
 		int fitnessTotal = individual.stream().mapToInt(Individual::getFitness).sum();
 		for (Individual idv : individual) {
 			fitnesses.add(fitnessTotal - idv.getFitness());
 		}
 		int sum = fitnesses.stream().mapToInt(Integer::intValue).sum();
-		fitnesses.stream().map(n -> (n / sum) * 100); // not working
-		return fitnesses;
+		return fitnesses.stream().map(n -> ((double)n / (double)sum) * 100).mapToInt(Double::intValue).toArray();
 	}
 
 	public Individual mutation(Individual toMutate) {

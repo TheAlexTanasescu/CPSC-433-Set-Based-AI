@@ -1,10 +1,6 @@
 import java.io.FileNotFoundException;
 
 public class Scheduler {
-	// parse notes
-	// validate preferences
-	// validate partial assignment
-	// return problem
 	private static Individual result = null;
 
 	public static void main(String[] args)  {
@@ -19,7 +15,6 @@ public class Scheduler {
 			boolean noValid = false;
 			Population currentPop = new Population(prob);
 			ctr = currentPop.control();
-//			System.out.println(ctr);
 			
 			while (genCount <= prob.getMaxGenerations() && !noValid) {
 				if (ctr == 0) {
@@ -36,12 +31,13 @@ public class Scheduler {
 				ctr = currentPop.control();
 				genCount++;
 			}
-//			System.out.println(genCount);
 			
 			if (!noValid) result = currentPop.getBestIndividual();
 			scheduler.printResult();
 		} catch (FileNotFoundException e) {
-			
+			System.out.println(e);
+		} catch (Exception e) {
+			System.out.println(e);
 		}
 		
 	}
@@ -50,6 +46,7 @@ public class Scheduler {
 		if (result == null) {
 			System.out.println("No solution can be found...");
 		} else {
+			System.out.println("---------------------Result---------------------");
 			System.out.println("Eval-value: " + result.getFitness());
 			System.out.println(result);
 		}

@@ -32,4 +32,9 @@ public class Game extends Assignable {
 		
 		return id.toString();
 	}
+	
+	@Override
+	public int getStringLength() {
+		return super.getLeagueId().length() + 7;		
+	}
 }

@@ -84,33 +84,20 @@ public class Individual {
 		generateRandomSeq(allGames);
 		generateRandomSeq(allPractices);
 		
-//		for (int n : allGames) {
-//			System.out.print(n + ", ");
-//		}
-//		System.out.println("end");
-//		for (int n : allPractices) {
-//			System.out.print(n + ", ");
-//		}
-//		System.out.println("end");
-		
 		Assignable toAssign;
 		int ag = 0;
 		int ap = 0;
 		int i = 0;
 		
 		while (i < nGames + nPractices) {
-//			System.out.print(i);
 			int next = rand.nextInt(2);
-//			System.out.println(": " + next);
 			if (next == 0 && ag < nGames) {
-//				System.out.println(allGames[ag]);
 				toAssign = prob.games.get(allGames[ag]);
 				TimeSlot slot = gameSlotChoice(toAssign);
 				assignment(toAssign, slot, randomSchedule);
 				ag++;
 				i++;
 			} else if (next == 1 && ap < nPractices) {
-//				System.out.println(allPractices[ap]);
 				toAssign = prob.practices.get(allPractices[ap]);
 				TimeSlot slot = pracSlotChoice(toAssign);
 				assignment(toAssign, slot, randomSchedule);
@@ -210,85 +197,61 @@ public class Individual {
 		
 	public boolean validate(ArrayList<Pair> scheduleToValidate) {
 		ArrayList<Pair> tempScheduleInPair = new ArrayList<Pair>();
-		Map<TimeSlot, List<Assignable>> tempSchedule = new HashMap<TimeSlot, List<Assignable>>();
+		Map<TimeSlot, List<Assignable>> tempSchedule = transformScheduleTimeSlot(null);
 		HashMap<Assignable, TimeSlot> givenSchedule = new HashMap<Assignable, TimeSlot>();
 		HashMap<Assignable, TimeSlot> searchState = new HashMap<Assignable, TimeSlot>();
 				
 		for (Pair assigned : scheduleToValidate) {
-//			System.out.println(assigned.first + ":" + assigned.second);
 			givenSchedule.put(assigned.first, assigned.second);
 			searchState.put(assigned.first, null);
 		}
 		
 		// if schedule is not full, randomly choose unassigns until full
 		while (givenSchedule.size() < prob.getIndividualMax()) {
-			System.out.println("schedule not full");
+//			System.out.println("schedule not full");
 			Assignable toAssign;
+			int counter = 1;
 			if (rand.nextInt(2) == 0) {
 				toAssign = prob.games.get(rand.nextInt(nGames));
-				while (givenSchedule.containsKey(toAssign)) {
+				while (counter < nGames && givenSchedule.containsKey(toAssign)) {
 					toAssign = prob.games.get(rand.nextInt(nGames));
+					counter++;
 				}
 			} else {
 				toAssign = prob.practices.get(rand.nextInt(nPractices));
-				while (givenSchedule.containsKey(toAssign)) {
+				while (counter < nPractices && givenSchedule.containsKey(toAssign)) {
 					toAssign = prob.practices.get(rand.nextInt(nPractices));
+					counter++;
 				}
 			}
 			givenSchedule.put(toAssign, null);
 			searchState.put(toAssign, null);
 		}
 		
-		for (TimeSlot slot : prob.gameSlots) {
-			if (!tempSchedule.containsKey(slot)) {
-				tempSchedule.put(slot, new ArrayList<Assignable>());
-			}
-		}
-		
-		for (TimeSlot slot : prob.practiceSlots) {
-			if (!tempSchedule.containsKey(slot)) {
-				tempSchedule.put(slot, new ArrayList<Assignable>());
-			}
-		}
-		
-//		System.out.println(givenSchedule.size());
-//		System.out.println(prob.getIndividualMax());
-		
-		boolean constr = true;
+		int constr = 0;
 		
 		// generate random
 		generateRandomSeq(allGTS);
 		generateRandomSeq(allPTS);
 
 		for (Assignable assignable : searchState.keySet()) {
-			// no valid schedule found
-			if (!constr) break;
 			sg = 0;
 			sp = 0;
-//			System.out.println(assignable);
 			// select a slot to proceed (predefined or random)
 			TimeSlot toAssign = givenSchedule.get(assignable);
-//			System.out.println(toAssign);
-			if (toAssign == null) {
-				toAssign = getNextSlot(assignable);
-			}
-			
-//			System.out.println(n_gameslots + " + " + n_practiceslots);
+			if (toAssign == null) toAssign = getNextSlot(assignable);
 			
 			// loop until a valid slot is found or no valid slot can be found for current assignable
 			while (sg <= nGameslots || sp <= nPracticeslots) {
-//				System.out.println(sg + ": " + sp);
 				// can't find a valid slot for this assignable, go the the next assignable
-				if (sg >= nGameslots || sp >= nPracticeslots) {
-					constr = false;
-					break;
-				}
+				if (sg >= nGameslots || sp >= nPracticeslots) break;
 				
 				// all passed, break and try the next assignable
 				if (passedHardConstr(assignable, toAssign, tempSchedule, searchState)) {
 					searchState.put(assignable, toAssign);
 					assignment(assignable, toAssign, tempSchedule);
 					assignment(assignable, toAssign, tempScheduleInPair);
+					constr++;
 					break;
 				}
 				
@@ -297,13 +260,14 @@ public class Individual {
 			}
 		}
 		
-		if (constr) {
+		if (constr > 0) {
 			scheduleInPair = tempScheduleInPair;
 			evaluate(this);
+			return true;
 		}
 		else scheduleInPair = null;
 		
-		return constr;
+		return false;
 	}
 	
 	private TimeSlot getNextSlot(Assignable assignable) {
@@ -415,7 +379,6 @@ public class Individual {
 	
 	private boolean maxCheck(Assignable assignable, TimeSlot toAssign, Map<TimeSlot, List<Assignable>> tempSchedule) {
 		// gamemax, practicemax
-//		System.out.println(tempSchedule.get(toAssign).size() + ", " + toAssign.getMax());
 		if (toAssign.getMax() == 0 || tempSchedule.get(toAssign).size() >= toAssign.getMax()) {
 			return false;
 		}
@@ -768,7 +731,7 @@ public class Individual {
 	
 	public int evaluate(Individual schedule) {
 		ArrayList<Pair> scheduleList = schedule.getSchedule();
-		int evalMinfilled = 0; // total penalties for not satisfying slot's minimum
+		int evalMinfilled = 0;  // total penalties for not satisfying slot's minimum
 		int evalPref = 0; 		// total penalties from not satisfying preferences
 		int evalPair = 0; 		// total penalties from not satisfying pairs
 		int evalSecdiff = 0; 	// total penalties from overlapping divisions
@@ -777,15 +740,15 @@ public class Individual {
 		Map<Assignable, TimeSlot> transformScheduleAssignable = transformScheduleAssignable(scheduleList);
 
 		// Part 1: Eval_minfill(assign) function
-		for (TimeSlot slot : transformScheduleTimeSlot.keySet()) {
-			if (slot instanceof GameSlot) {
-				if (transformScheduleTimeSlot.get(slot).size() < slot.getMin()) {
-					evalMinfilled += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenGameMin();;
-				}
-			} else {
-				if (transformScheduleTimeSlot.get(slot).size() < slot.getMin()) {
-					evalMinfilled += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenPracticeMin();;
-				}
+		for (TimeSlot slot : prob.gameSlots) {
+			if (transformScheduleTimeSlot.get(slot).size() < slot.getMin()) {
+				evalMinfilled += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenGameMin();;
+			}
+		}
+		
+		for (TimeSlot slot : prob.practiceSlots) {
+			if (transformScheduleTimeSlot.get(slot).size() < slot.getMin()) {
+				evalMinfilled += (slot.getMin() - transformScheduleTimeSlot.get(slot).size()) * prob.getPenPracticeMin();;
 			}
 		}
 		
@@ -808,7 +771,7 @@ public class Individual {
 		// loop through schedule to get assigned games/practices and get assigned points
 		for (int i = 0; i < scheduleList.size(); i++){
 			if (!scheduleList.get(i).first.preferences.isEmpty()){
-				if(scheduleList.get(i).first.preferences.containsKey(scheduleList.get(i).second)){
+				if (scheduleList.get(i).first.preferences.containsKey(scheduleList.get(i).second)){
 					assignedPoints += scheduleList.get(i).first.preferences.get(scheduleList.get(i).second);
 				}
 			}
@@ -830,14 +793,16 @@ public class Individual {
 		// total penalty points: Eval_pair(assign) * w_pair
 		evalPair *= prob.getwPair();
 
-		// Part 4: Eval_secdiff(assign) function 
+		// Part 4: Eval_secdiff(assign) function
+		Set<Assignable> checked = new HashSet<Assignable>();
 		for (Pair assigned : scheduleList) {
 			if (assigned.first instanceof Game) {
 				int ageGroup = assigned.first.getAgeGroup();
 				int tier = assigned.first.getTier();
 				for (Assignable assignInSlot : transformScheduleTimeSlot.get(assigned.second)) {
 					if (!assignInSlot.equals(assigned.first) && assignInSlot.getAgeGroup() == ageGroup && assignInSlot.getTier() == tier) {
-						evalSecdiff += prob.getPenSection();						
+						if (checked.contains(assignInSlot)) evalSecdiff += prob.getPenSection();	
+						else checked.add(assigned.first);
 					}
 				}
 			}
@@ -862,33 +827,47 @@ public class Individual {
 	
 	private Map<TimeSlot, List<Assignable>> transformScheduleTimeSlot(ArrayList<Pair> schedule) {
 		Map<TimeSlot, List<Assignable>> transformedSchedule = new HashMap<TimeSlot, List<Assignable>>();
-		for (Pair assigned : schedule) {
-			if (transformedSchedule.containsKey(assigned.second)) {
-				transformedSchedule.get(assigned.second).add(assigned.first);
-			} else {
-				transformedSchedule.put(assigned.second, new ArrayList<Assignable>());
-				transformedSchedule.get(assigned.second).add(assigned.first);
-			}			
+		
+		for (TimeSlot slot : prob.gameSlots) {
+			if (!transformedSchedule.containsKey(slot)) {
+				transformedSchedule.put(slot, new ArrayList<Assignable>());
+			}
 		}
+		
+		for (TimeSlot slot : prob.practiceSlots) {
+			if (!transformedSchedule.containsKey(slot)) {
+				transformedSchedule.put(slot, new ArrayList<Assignable>());
+			}
+		}
+
+		if (schedule != null) {
+			for (Pair assigned : schedule) {
+				transformedSchedule.get(assigned.second).add(assigned.first);		
+			}
+		}
+		
 		return transformedSchedule;
 	}
 
-	private static Comparator<Pair> comparator = new Comparator<Pair>() {
-		@Override
-		public int compare(Pair o1, Pair o2) {
-			return (o1.first.getLeagueId()).compareToIgnoreCase(o2.first.getLeagueId());
-		}
-    };
+	Comparator<Assignable> comparator = Comparator
+	        .comparing(Assignable::getLeagueId)
+	        .thenComparing(Assignable::getStringLength)
+	        .thenComparing(Assignable::toString);
 	
 	@Override
 	public String toString() {
 		StringBuilder output = new StringBuilder();
-		Collections.sort(scheduleInPair, comparator);
-		
-		for (Pair assigned : scheduleInPair) {
-			output.append(assigned.first);
+		Map<Assignable, TimeSlot> transformedSchedule = transformScheduleAssignable(scheduleInPair);
+		List<Assignable> keys = new ArrayList<>(transformedSchedule.keySet());
+		Collections.sort(keys, comparator);
+
+		for (Assignable assigned : keys) {
+			output.append(assigned);
+			for (int i = 0; i < 30 - assigned.getStringLength(); i++) {
+				output.append(" ");
+			}
 			output.append(": ");
-			output.append(assigned.second);
+			output.append(transformedSchedule.get(assigned));
 			output.append("\n");
 		}
 		

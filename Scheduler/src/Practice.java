@@ -42,7 +42,7 @@ public class Practice extends Assignable {
 		id.append(getLeagueId());
 		if (getDiv() != -1) {
 			if (getDiv() < 10) id.append(" DIV 0");
-			else id.append(" Div ");
+			else id.append(" DIV ");
 			id.append(getDiv());
 		}
 		
@@ -57,5 +57,11 @@ public class Practice extends Assignable {
 		id.append(pracId);
 		
 		return id.toString();
+	}
+	
+	@Override
+	public int getStringLength() {
+		if (super.getDiv() != -1) return super.getLeagueId().length() + 14;
+		else return super.getLeagueId().length() + 7;		
 	}
 }
