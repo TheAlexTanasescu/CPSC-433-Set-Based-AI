@@ -3,8 +3,6 @@ NotCompatibleTest
 
 Game slots:
 MO, 8:00, 3, 0
-WE, 8:00, 3, 0
-FR, 8:00, 3, 0
 
 Practice slots:
 

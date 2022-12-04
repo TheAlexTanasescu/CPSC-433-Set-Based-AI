@@ -10,7 +10,7 @@ public class Scheduler {
 		try {
 			parser = new Parser(args);
 			Problem prob = parser.parse();
-			printDebug(prob, true);
+			printDebug(prob, false);
 			
 			
 				
