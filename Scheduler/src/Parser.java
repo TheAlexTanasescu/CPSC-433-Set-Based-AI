@@ -96,6 +96,23 @@ public class Parser {
 		
 		prob.setMaxSlots(totalAvailableSlotsFromInput);
 		
+		// add implied special practices if not already existed
+		for (Game inputGame : prob.games) {
+			if (inputGame.getAgeGroup() == 12 && inputGame.getTier() == 1 && inputGame.isSpecial()) {
+				break;
+			} else if (inputGame.getAgeGroup() == 12 && inputGame.getTier() == 1 && !inputGame.isSpecial()) {
+				prob.practices.add(new Practice(inputGame.getLeagueId()+"S", 12, 1, -1, -1, true, true));
+			}
+		}
+		
+		for (Game inputGame : prob.games) {
+			if (inputGame.getAgeGroup() == 13 && inputGame.getTier() == 1 && inputGame.isSpecial()) {
+				break;
+			} else if (inputGame.getAgeGroup() == 13 && inputGame.getTier() == 1 && !inputGame.isSpecial()) {
+				prob.practices.add(new Practice(inputGame.getLeagueId()+"S", 13, 1, -1, -1, true, true));
+			}
+		}
+		
 //		for (TimeSlot slot : prob.gameSlots) {
 //			System.out.println(slot);
 //		}
