@@ -2,9 +2,6 @@ Name:
 Wrong Format Test 2
 
 Game slots:
-MON, 8:00, 3, 0
-WED, 8:00,3,0
-FRI, 8:00, 3, 0
 
 Practice slots:
 
