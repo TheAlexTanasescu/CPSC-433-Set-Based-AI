@@ -125,12 +125,11 @@ public class Individual {
 		if (!toAssign.unwanted.isEmpty()) {
 			randSlot = rand.nextInt(nGameslots);
 			slot = prob.gameSlots.get(randSlot);
-			while (toAssign.unwanted.contains(slot)|| slot.getMax() == 0) {
-				System.out.println("Max " + slot.getMax());
-				//System.out.println("Min " + slot.getMin());
-				System.out.println("N size " + toAssign.unwanted.size());
+			int i = 0;
+			while ((toAssign.unwanted.contains(slot) || slot.getMax() == 0) && i < nGameslots) {
 				randSlot = rand.nextInt(nGameslots);
 				slot = prob.gameSlots.get(randSlot);
+				i++;
 			}
 			return slot;
 		}
@@ -366,9 +365,11 @@ public class Individual {
 		// if partassign, check fulfilled
 		if (assignable.getPartAssign() != null) {
 			if (assignDay != assignable.getPartAssign().getDay() || assignTime != assignable.getPartAssign().getStartTime()) {
+				//System.out.println("false");
 				return false;
 			}
 		}
+		//System.out.println("true");
 		return true;
 	}
 	
