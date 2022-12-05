@@ -336,18 +336,18 @@ public class Individual {
 	private boolean specialCheck(Assignable assignable, TimeSlot toAssign, Map<Assignable, TimeSlot> searchState) {
 		// if special, check timeslot
 		if (assignable.isSpecial()) {
-			int age = assignable.getAgeGroup();
-			int tier = assignable.getTier();
-			Assignable toCheck = null;
-
+//			int age = assignable.getAgeGroup();
+//			int tier = assignable.getTier();
+			boolean isCounterPartExist = false;
+			String leagueInfoWithoutS = assignable.getLeagueId().substring(0, assignable.getLeagueId().length() - 1);
 			for (Assignable assigned : searchState.keySet()) {
-				if (assigned.getAgeGroup() == age && assigned.getTier() == tier && !assigned.isSpecial()) {
-					toCheck = assigned;
+				if (!assigned.isSpecial() && assigned.getLeagueId().equals(leagueInfoWithoutS)) {
+					isCounterPartExist = true;
 					break;
 				}
 			}
 			
-			if (toCheck == null) return false;
+			if (!isCounterPartExist) return false;
 			if (toAssign.getDay() != Day.TU || !toAssign.getStartTime().equals("1800")) {
 				return false;
 			}
