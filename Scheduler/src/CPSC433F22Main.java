@@ -7,10 +7,8 @@ public class CPSC433F22Main {
 
 	public static void main(String[] args)  {
 		
-		File inputFile = new File(args[0]);
-		boolean isFile = inputFile.isFile();
 		
-		//System.out.println("Args 0 is file: " + isFile);
+		
 		
 		if (!(args.length == 12 || args.length == 9))
 		{
@@ -20,6 +18,9 @@ public class CPSC433F22Main {
 		
 		}
 		
+		//Checks if the first argument is a file
+		File inputFile = new File(args[0]);
+		boolean isFile = inputFile.isFile();
 		
 		if(!isFile)
 		{
