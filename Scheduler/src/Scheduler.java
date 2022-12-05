@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Map;
 
@@ -6,7 +7,11 @@ public class Scheduler {
 
 	public static void main(String[] args)  {
 		
-		//System.out.println("Args Length: " + args.length);
+		File inputFile = new File(args[0]);
+		boolean isFile = inputFile.isFile();
+		
+		//System.out.println("Args 0 is file: " + isFile);
+		
 		if (!(args.length == 12 || args.length == 9))
 		{
 			System.out.println("Improper number of arguments");
@@ -15,6 +20,13 @@ public class Scheduler {
 		
 		}
 		
+		
+		if(!isFile)
+		{
+			System.out.println("Invalid file name");
+			System.out.println("Please run again with a valid file name");
+			return;
+		}
 		Scheduler scheduler = new Scheduler();
 		Parser parser = null;
 		try {
