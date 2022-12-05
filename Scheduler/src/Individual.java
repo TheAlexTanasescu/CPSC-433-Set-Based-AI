@@ -302,7 +302,7 @@ public class Individual {
 		overlappingSlots.add(toAssign);
 		
 		return 
-		specialCheck(assignable) &&
+		specialCheck(assignable, toAssign, searchState) &&
 		eveningCheck(assignable, toAssign) &&
 		meetingCheck(assignable, assignDay, assignTime) &&
 		partAssignCheck(assignable, assignDay, assignTime) &&
@@ -333,10 +333,21 @@ public class Individual {
 		return null;
 	}
 	
-	private boolean specialCheck(Assignable assignable) {
+	private boolean specialCheck(Assignable assignable, TimeSlot toAssign, Map<Assignable, TimeSlot> searchState) {
 		// if special, check timeslot
 		if (assignable.isSpecial()) {
-			if (practiceSpecial(assignable) == null) {
+			int age = assignable.getAgeGroup();
+			int tier = assignable.getTier();
+			Assignable toCheck = null;
+
+			for (Assignable assigned : searchState.keySet()) {
+				if (assigned.getAgeGroup() == age && assigned.getTier() == tier) {
+					toCheck = assigned;
+				}
+			}
+			
+			if (toCheck == null) return false;
+			if (toAssign.getDay() != Day.TU || toAssign.getStartTime() != "1800") {
 				return false;
 			}
 		}
