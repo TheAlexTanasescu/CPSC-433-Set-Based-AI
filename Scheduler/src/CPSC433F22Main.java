@@ -2,7 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Map;
 
-public class Scheduler {
+public class CPSC433F22Main {
 	private static Individual result = null;
 
 	public static void main(String[] args)  {
@@ -27,7 +27,7 @@ public class Scheduler {
 			System.out.println("Please run again with a valid file name");
 			return;
 		}
-		Scheduler scheduler = new Scheduler();
+		CPSC433F22Main scheduler = new CPSC433F22Main();
 		Parser parser = null;
 		try {
 			parser = new Parser(args);
