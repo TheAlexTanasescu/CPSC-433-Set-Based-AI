@@ -1,8 +1,8 @@
 public class Game extends Assignable {
 
 	// for CSMA
-	public Game(String id, int age, int tier, int div, boolean isSpecial) {
-		super(id, age, tier, div, isSpecial);		
+	public Game(String id, int age, int tier, int div) {
+		super(id, age, tier, div);		
 	}
 	
 	// all other organizing bodies

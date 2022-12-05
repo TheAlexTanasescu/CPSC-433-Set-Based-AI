@@ -114,10 +114,6 @@ public class Individual {
 		TimeSlot slot;
 		int randSlot;
 		
-		if (toAssign.isSpecial()) {
-			return gameSpecial(toAssign);
-		}
-		
 		if (toAssign.getPartAssign() != null) {
 			return toAssign.getPartAssign();
 		}
@@ -153,6 +149,10 @@ public class Individual {
 	private TimeSlot pracSlotChoice(Assignable toAssign) {
 		TimeSlot slot;
 		int randSlot;
+		
+		if (toAssign.isSpecial()) {
+			return practiceSpecial(toAssign);
+		}
 		
 		if (toAssign.getPartAssign() != null) {
 			return toAssign.getPartAssign();
@@ -302,7 +302,7 @@ public class Individual {
 		overlappingSlots.add(toAssign);
 		
 		return 
-		specialCheck(assignable) &&
+		specialCheck(assignable, toAssign, searchState) &&
 		eveningCheck(assignable, toAssign) &&
 		meetingCheck(assignable, assignDay, assignTime) &&
 		partAssignCheck(assignable, assignDay, assignTime) &&
@@ -327,16 +327,28 @@ public class Individual {
 		return null;
 	}
 	
-	private TimeSlot gameSpecial(Assignable toAssign) {
+	private TimeSlot practiceSpecial(Assignable toAssign) {
 		TimeSlot slot = getPracticeSlot(new PracticeSlot(Day.TU, "1800"));
 		if (slot.getMax() > 0) return slot;
 		return null;
 	}
 	
-	private boolean specialCheck(Assignable assignable) {
+	private boolean specialCheck(Assignable assignable, TimeSlot toAssign, Map<Assignable, TimeSlot> searchState) {
 		// if special, check timeslot
 		if (assignable.isSpecial()) {
-			if (gameSpecial(assignable) == null) {
+//			int age = assignable.getAgeGroup();
+//			int tier = assignable.getTier();
+			boolean isCounterPartExist = false;
+			String leagueInfoWithoutS = assignable.getLeagueId().substring(0, assignable.getLeagueId().length() - 1);
+			for (Assignable assigned : searchState.keySet()) {
+				if (!assigned.isSpecial() && assigned.getLeagueId().equals(leagueInfoWithoutS)) {
+					isCounterPartExist = true;
+					break;
+				}
+			}
+			
+			if (!isCounterPartExist) return false;
+			if (toAssign.getDay() != Day.TU || !toAssign.getStartTime().equals("1800")) {
 				return false;
 			}
 		}
@@ -405,7 +417,7 @@ public class Individual {
 			if (hasSpecial) {
 				ArrayList<TimeSlot> overlappedGameSlots = getOverlappingSlots(specialSlot);
 				for (TimeSlot overlapped : overlappedGameSlots) {
-					for (Assignable assigned : tempSchedule.get(overlapped)) {
+					for (Assignable assigned : tempSchedule.get(getGameSlot(overlapped))) {
 						if (assigned.getAgeGroup() == age && assigned.getTier() == tier) return false;
 					}
 				}
