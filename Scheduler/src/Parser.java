@@ -115,6 +115,22 @@ public class Parser {
 			}
 		}
 		
+		
+		int gameSlotTotal = 0;
+        for (GameSlot slot : prob.gameSlots) {
+            gameSlotTotal += slot.getMax();
+        }
+        
+        if (gameSlotTotal < prob.games.size()) 
+            throw new IllegalArgumentException("No solution can be found - game slot size"); 
+        
+        int practiceSlotTotal = 0;
+        for (PracticeSlot slot : prob.practiceSlots) {
+            practiceSlotTotal += slot.getMax();
+        }
+        
+        if (practiceSlotTotal < prob.practices.size()) 
+            throw new IllegalArgumentException("No solution can be found - prac slot size");
 //		for (TimeSlot slot : prob.gameSlots) {
 //			System.out.println(slot);
 //		}

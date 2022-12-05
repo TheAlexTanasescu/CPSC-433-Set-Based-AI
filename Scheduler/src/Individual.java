@@ -262,6 +262,23 @@ public class Individual {
 			}
 		}
 		
+		int gameCount = 0;
+        int pracCount = 0;
+        for (Pair pair : tempScheduleInPair) {
+            if (pair.first instanceof Game) {
+                gameCount++;
+            }
+            if (pair.first instanceof Practice) {
+                pracCount++;
+            }
+            
+        }
+        if (gameCount != prob.games.size() || pracCount != prob.practices.size()) {
+            scheduleInPair = null;
+            return false;
+        } 
+		
+		
 		if (constr > 0) {
 			scheduleInPair = tempScheduleInPair;
 			evaluate(this);
