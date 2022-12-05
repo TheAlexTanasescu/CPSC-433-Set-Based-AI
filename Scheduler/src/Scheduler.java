@@ -7,11 +7,10 @@ public class Scheduler {
 	public static void main(String[] args)  {
 		
 		//System.out.println("Args Length: " + args.length);
-		
-		
 		if (!(args.length == 12 || args.length == 9))
 		{
-			System.out.println("Improper Arguments");
+			System.out.println("Improper number of arguments");
+			System.out.println("Please run again with a proper number of arguments");
 			return;
 		
 		}
