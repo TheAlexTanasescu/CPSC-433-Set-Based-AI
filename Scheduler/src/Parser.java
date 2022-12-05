@@ -37,6 +37,9 @@ public class Parser {
 		
 		ArrayList<Integer> parsed = new ArrayList<>();
 		
+		
+		
+		
 		for (int i = 1; i < args.length; i++) {
 			if (Integer.parseInt(args[i]) >= 0) {
 				parsed.add(Integer.parseInt(args[i]));
