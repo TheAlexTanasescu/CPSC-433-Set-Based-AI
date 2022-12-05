@@ -85,8 +85,8 @@ public class Parser {
 		// parse text file
 //		transformInputText(args[0]);
 		ageTierPattern = Pattern.compile("^[\\s]*([A-Za-z]{1})+([0-9]+)+([A-Za-z]{1})+([0-9]+)+(?:(S)){0,1}[\\s]*");
-		gamePattern = Pattern.compile("^[\\s]*([A-Za-z]{4})[\\s][\\s]*+([0-9A-Za-z\\s]+)[\\s][\\s]*+DIV[\\s]+([0-9]+)");
-		practicePattern = Pattern.compile("^[\\s]*([A-Za-z]{4})[\\s]++([0-9A-Za-z]+)[\\s]++(?:DIV[\\s]++([0-9]+)[\\s]+){0,1}+(?:(PRC|OPN))[\\s]++([0-9]+)[\\s]*");
+		gamePattern = Pattern.compile("^[\\s]*([A-Za-z]{4})[\\s][\\s]*+([0-9A-Za-z\\s]+)[\\s][\\s]*+DIV[\\s]+([0-9]+)[\\s]*");
+		practicePattern = Pattern.compile("^[\\s]*([A-Za-z]{4})[\\s]++([0-9A-Za-z]+)+(?:[\\s]++DIV[\\s]++([0-9]+)){0,1}+(?:[\\s]++(PRC|OPN)){0,1}+(?:[\\s]++([0-9]+)){0,1}[\\s]*");
 		notCompatiblePattern = Pattern.compile("^[\\s]*([0-9A-Za-z\\s]*)[\\s]*,[\\s]*([0-9A-Za-z\\s]*)[\\s]*");
 		unwantedPattern = Pattern.compile("^[\\s]*([0-9A-Za-z\\s]*)[\\s]*,[\\s]*([A-Z]{2})[\\s]*,[\\s]*([0-9]{1,2}:[0-9]{2})[\\s]*");
 		preferencesPattern = Pattern.compile("^[\\s]*([A-Z]{2})[\\s]*,[\\s]*([0-9]{1,2}:[0-9]{2})[\\s]*,[\\s]*([0-9A-Za-z\\s]*)[\\s]*,[\\s]*([0-9]*)[\\s]*");
@@ -336,13 +336,11 @@ public class Parser {
 			String id = m.group(1) + " " + m.group(2);
 			int div = Integer.parseInt(m.group(3));
 			if (m.group(1).equals("CSMA")) {
-				boolean isSpecial = false;
 				Matcher mat = ageTierPattern.matcher(m.group(2));
 				if (mat.find()) { 
 					int age = Integer.parseInt(mat.group(2));
 					int tier = Integer.parseInt(mat.group(4));
-					if (mat.group(5) != null) isSpecial = true;
-					return new Game(id, age, tier, div, isSpecial);	
+					return new Game(id, age, tier, div);	
 				}
 			} else {
 				return new Game(id, div);	
@@ -354,23 +352,32 @@ public class Parser {
 	private Practice parsePractice(String identifier) {
 		Matcher m = practicePattern.matcher(identifier);
 		if (m.find()) {
-			// 1: id, 2: age/tier, 3: div, 4: PRC/OPN, 5: pracid
+			// 1: id, 2: age/tier, 3: div, 4: PRC/OPN, 5: pracid		
 			boolean isPrac = true;
 			String id = m.group(1) + " " + m.group(2);
 			int div = -1;
+			int prac = -1;
 			if (m.group(3) != null) div = Integer.parseInt(m.group(3));
-			if (m.group(4).equals("OPN")) isPrac = false;
-			int prac = Integer.parseInt(m.group(5));
+			if (m.group(4) != null && m.group(5) != null) {
+				if (m.group(4).equals("OPN")) isPrac = false;
+				prac = Integer.parseInt(m.group(5));
+			}
+			
 			if (m.group(1).equals("CSMA")) {
+				boolean isSpecial = false;
 				Matcher mat = ageTierPattern.matcher(m.group(2));
 				if (mat.find()) { 
 					int age = Integer.parseInt(mat.group(2));
 					int tier = Integer.parseInt(mat.group(4));
-					return new Practice(id, age, tier, div, prac, isPrac);		
+					if (mat.group(5) != null) isSpecial = true;
+					return new Practice(id, age, tier, div, prac, isPrac, isSpecial);		
 				}
 			} else {
 				return new Practice(id, div, prac, isPrac);
 			}
+		}
+		else {
+			System.out.println(identifier);
 		}
 		return null;
 	}

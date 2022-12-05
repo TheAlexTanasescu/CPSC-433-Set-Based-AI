@@ -114,10 +114,6 @@ public class Individual {
 		TimeSlot slot;
 		int randSlot;
 		
-		if (toAssign.isSpecial()) {
-			return gameSpecial(toAssign);
-		}
-		
 		if (toAssign.getPartAssign() != null) {
 			return toAssign.getPartAssign();
 		}
@@ -153,6 +149,10 @@ public class Individual {
 	private TimeSlot pracSlotChoice(Assignable toAssign) {
 		TimeSlot slot;
 		int randSlot;
+		
+		if (toAssign.isSpecial()) {
+			return practiceSpecial(toAssign);
+		}
 		
 		if (toAssign.getPartAssign() != null) {
 			return toAssign.getPartAssign();
@@ -327,7 +327,7 @@ public class Individual {
 		return null;
 	}
 	
-	private TimeSlot gameSpecial(Assignable toAssign) {
+	private TimeSlot practiceSpecial(Assignable toAssign) {
 		TimeSlot slot = getPracticeSlot(new PracticeSlot(Day.TU, "1800"));
 		if (slot.getMax() > 0) return slot;
 		return null;
@@ -336,7 +336,7 @@ public class Individual {
 	private boolean specialCheck(Assignable assignable) {
 		// if special, check timeslot
 		if (assignable.isSpecial()) {
-			if (gameSpecial(assignable) == null) {
+			if (practiceSpecial(assignable) == null) {
 				return false;
 			}
 		}
