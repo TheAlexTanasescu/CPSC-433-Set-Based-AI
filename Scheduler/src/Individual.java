@@ -341,13 +341,14 @@ public class Individual {
 			Assignable toCheck = null;
 
 			for (Assignable assigned : searchState.keySet()) {
-				if (assigned.getAgeGroup() == age && assigned.getTier() == tier) {
+				if (assigned.getAgeGroup() == age && assigned.getTier() == tier && !assigned.isSpecial()) {
 					toCheck = assigned;
+					break;
 				}
 			}
 			
 			if (toCheck == null) return false;
-			if (toAssign.getDay() != Day.TU || toAssign.getStartTime() != "1800") {
+			if (toAssign.getDay() != Day.TU || !toAssign.getStartTime().equals("1800")) {
 				return false;
 			}
 		}
@@ -416,7 +417,7 @@ public class Individual {
 			if (hasSpecial) {
 				ArrayList<TimeSlot> overlappedGameSlots = getOverlappingSlots(specialSlot);
 				for (TimeSlot overlapped : overlappedGameSlots) {
-					for (Assignable assigned : tempSchedule.get(overlapped)) {
+					for (Assignable assigned : tempSchedule.get(getGameSlot(overlapped))) {
 						if (assigned.getAgeGroup() == age && assigned.getTier() == tier) return false;
 					}
 				}

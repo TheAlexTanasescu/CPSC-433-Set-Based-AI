@@ -63,6 +63,7 @@ public class Practice extends Assignable {
 	@Override
 	public int getStringLength() {
 		if (super.getDiv() != -1) return super.getLeagueId().length() + 14;
+		if (super.isSpecial()) return super.getLeagueId().length();
 		else return super.getLeagueId().length() + 7;		
 	}
 }

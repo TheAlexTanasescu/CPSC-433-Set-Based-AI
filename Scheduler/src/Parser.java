@@ -335,7 +335,7 @@ public class Parser {
 		if (m.find()) {
 			String id = m.group(1) + " " + m.group(2);
 			int div = Integer.parseInt(m.group(3));
-			if (m.group(1).equals("CSMA")) {
+			if (m.group(1).equals("CSMA") || m.group(1).equals("CMSA")) {
 				Matcher mat = ageTierPattern.matcher(m.group(2));
 				if (mat.find()) { 
 					int age = Integer.parseInt(mat.group(2));
@@ -363,7 +363,7 @@ public class Parser {
 				prac = Integer.parseInt(m.group(5));
 			}
 			
-			if (m.group(1).equals("CSMA")  || m.group(1).equals("CMSA")) {
+			if (m.group(1).equals("CSMA") || m.group(1).equals("CMSA")) {
 				boolean isSpecial = false;
 				Matcher mat = ageTierPattern.matcher(m.group(2));
 				if (mat.find()) { 
