@@ -104,8 +104,28 @@ public class Parser {
 //			System.out.println(slot);
 //		}
 		
+		//System.out.println("Parsing finished...");
 		System.out.println("Parsing finished...");
-		return prob;
+		
+		for(GameSlot g : prob.gameSlots) {
+			if(g.getMax() > 0 && (g.getMax() >= g.getMin())) {
+				return prob;
+			}
+				
+		}
+		
+		for(PracticeSlot p : prob.practiceSlots) {
+			if(p.getMax() > 0 && (p.getMax() >= p.getMin())) {
+				return prob;
+			}
+				
+		}
+		
+		
+		System.out.println("No solution can be found...");
+        System.exit(0);
+        return null;
+		
 	}
 	
 	public int getTotalAvailableSlotsFromInput() {
@@ -290,7 +310,12 @@ public class Parser {
 					gameSlot = null;
 					break;
 			}
+
 			gameSlot = getGameSlot(gameSlot);
+			if(parts.length == 4 && Integer.parseInt(parts[2]) == 0) {
+				prob.gameSlots.remove(gameSlot);
+			}
+
 			if (gameSlot != null && parts.length == 4) {
 				gameSlot.setMax(Integer.parseInt(parts[2]));
 				gameSlot.setMin(Integer.parseInt(parts[3]));
@@ -320,7 +345,12 @@ public class Parser {
 					practiceSlot = null;
 					break;
 			}
+			
 			practiceSlot = getPracticeSlot(practiceSlot);
+			if(parts.length == 4 && Integer.parseInt(parts[2]) == 0) {
+				prob.practiceSlots.remove(practiceSlot);
+			}
+			
 			if (practiceSlot != null && parts.length == 4) {
 				practiceSlot.setMax(Integer.parseInt(parts[2]));
 				practiceSlot.setMin(Integer.parseInt(parts[3]));
@@ -474,7 +504,7 @@ public class Parser {
 						if (a1 != null && a2 != null) {
 							a1.notcompatible.add(a2);
 							a2.notcompatible.add(a1);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid not compatible: %s", line)); 	
+						} else throw new IllegalArgumentException(String.format("Ignore invalid not compatible: %s" + "\nNo solution can be found... \n", line)); 	
 					}
 					else if (isGame(first) && !isGame(second)) {
 						Game a1 = getGame(parseGame(first));
@@ -482,7 +512,7 @@ public class Parser {
 						if (a1 != null && a2 != null) {
 							a1.notcompatible.add(a2);
 							a2.notcompatible.add(a1);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid not compatible: %s", line)); 
+						} else throw new IllegalArgumentException(String.format("Ignore invalid not compatible: %s" + "\nNo solution can be found... \n", line)); 
 					}
 					else if (!isGame(first) && isGame(second)) {
 						Practice a1 = getPractice(parsePractice(first));
@@ -490,7 +520,7 @@ public class Parser {
 						if (a1 != null && a2 != null) {
 							a1.notcompatible.add(a2);
 							a2.notcompatible.add(a1);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid not compatible: %s", line)); 
+						} else throw new IllegalArgumentException(String.format("Ignore invalid not compatible: %s" + "\nNo solution can be found... \n", line)); 
 					}
 					else if (!isGame(first) && !isGame(second)) {
 						Practice a1 = getPractice(parsePractice(first));
@@ -498,7 +528,7 @@ public class Parser {
 						if (a1 != null && a2 != null) {
 							a1.notcompatible.add(a2);
 							a2.notcompatible.add(a1);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid not compatible: %s", line)); 	
+						} else throw new IllegalArgumentException(String.format("Ignore invalid not compatible: %s" + "\nNo solution can be found... \n", line)); 	
 					}
 				}
 			} else return;
@@ -519,13 +549,13 @@ public class Parser {
 						unwantedSlot = parseGameSlot(slot);
 						if (assignable != null && unwantedSlot != null) {
 							assignable.unwanted.add(unwantedSlot);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid unwanted: %s", line)); 	
+						} else throw new IllegalArgumentException(String.format("Ignore invalid unwanted: %s" + "\nNo solution can be found... \n", line)); 	
 					} else {
 						assignable = getPractice(parsePractice(m.group(1)));
 						unwantedSlot = parsePracticeSlot(slot);
 						if (assignable != null && unwantedSlot != null) {
 							assignable.unwanted.add(unwantedSlot);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid unwanted: %s", line)); 	
+						} else throw new IllegalArgumentException(String.format("Ignore invalid unwanted: %s" + "\nNo solution can be found... \n", line)); 	
 					}
 				}				
 			} else return;
@@ -547,13 +577,13 @@ public class Parser {
 						unwantedSlot = parseGameSlot(slot);
 						if (assignable != null && unwantedSlot != null) {
 							assignable.preferences.put(unwantedSlot, Integer.parseInt(m.group(4)));
-						} else throw new IllegalArgumentException(String.format("Ignore invalid preference: %s", line)); 			
+						} else throw new IllegalArgumentException(String.format("Ignore invalid preference: %s" + "\nNo solution can be found... \n", line)); 			
 					} else {
 						assignable = getPractice(parsePractice(identifier));
 						unwantedSlot = parsePracticeSlot(slot);
 						if (assignable != null && unwantedSlot != null) {
 							assignable.preferences.put(unwantedSlot, Integer.parseInt(m.group(4)));
-						} else throw new IllegalArgumentException(String.format("Ignore invalid preference: %s", line)); 
+						} else throw new IllegalArgumentException(String.format("Ignore invalid preference: %s" + "\nNo solution can be found... \n", line)); 
 					}
 				}
 			} else return;
@@ -574,28 +604,28 @@ public class Parser {
 						Game a2 = getGame(parseGame(second));
 						if (a1 != null && a2 != null) {
 							a1.pair.add(a2);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s", line)); 
+						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s" + "\nNo solution can be found... \n", line)); 
 					}
 					else if (isGame(first) && !isGame(second)) {
 						Game a1 = getGame(parseGame(first));
 						Practice a2 = getPractice(parsePractice(second));
 						if (a1 != null && a2 != null) {
 							a1.pair.add(a2);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s", line)); 
+						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s" + "\nNo solution can be found... \n", line)); 
 					}
 					else if (!isGame(first) && isGame(second)) {
 						Practice a1 = getPractice(parsePractice(first));
 						Game a2 = getGame(parseGame(second));
 						if (a1 != null && a2 != null) {
 							a1.pair.add(a2);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s", line)); 
+						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s" + "\nNo solution can be found... \n", line)); 
 					}
 					else if (!isGame(first) && !isGame(second)) {
 						Practice a1 = getPractice(parsePractice(first));
 						Practice a2 = getPractice(parsePractice(second));
 						if (a1 != null && a2 != null) {
 							a1.pair.add(a2);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s", line)); 
+						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s" + "\nNo solution can be found... \n", line)); 
 					}
 				}
 			} else return;
@@ -614,14 +644,14 @@ public class Parser {
 					if (isGame(m.group(1))) {
                         assignable = getGame(parseGame(m.group(1)));
                         toAssignSlot = parseGameSlot(slot);
-                        if (toAssignSlot == null) throw new IllegalArgumentException(String.format("Ignore invalid partial assignment: %s", line)); 
-                        if (getGameSlot((GameSlot)toAssignSlot) == null) throw new IllegalArgumentException(String.format("Ignore invalid partial assignment: %s", line)); 
+                        if (toAssignSlot == null) throw new IllegalArgumentException(String.format("Ignore invalid partial assignment: %s" + "\nNo solution can be found... \n", line)); 
+                        if (getGameSlot((GameSlot)toAssignSlot) == null) throw new IllegalArgumentException(String.format("Ignore invalid partial assignment: %s" + "\nNo solution can be found... \n", line)); 
                         else assignable.setPartAssign(toAssignSlot);
                     } else {
                         assignable = getPractice(parsePractice(m.group(1)));
                         toAssignSlot = parsePracticeSlot(slot);
-                        if (toAssignSlot == null) throw new IllegalArgumentException(String.format("Ignore invalid partial assignment: %s", line)); 
-                        if (getPracticeSlot((PracticeSlot)toAssignSlot) == null) throw new IllegalArgumentException(String.format("Ignore invalid partial assignment: %s", line)); 
+                        if (toAssignSlot == null) throw new IllegalArgumentException(String.format("Ignore invalid partial assignment: %s" + "\nNo solution can be found... \n", line)); 
+                        if (getPracticeSlot((PracticeSlot)toAssignSlot) == null) throw new IllegalArgumentException(String.format("Ignore invalid partial assignment: %s" + "\nNo solution can be found... \n", line)); 
                         else assignable.setPartAssign(toAssignSlot);
                     }
 				}				

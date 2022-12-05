@@ -364,7 +364,7 @@ public class Individual {
 	private boolean partAssignCheck(Assignable assignable, Day assignDay, String assignTime) {
 		// if partassign, check fulfilled
 		if (assignable.getPartAssign() != null) {
-			if (assignDay == assignable.getPartAssign().getDay() && assignTime == assignable.getPartAssign().getStartTime()) {
+			if (assignDay != assignable.getPartAssign().getDay() && assignTime != assignable.getPartAssign().getStartTime()) {
 				//System.out.println("false");
 				return false;
 			}
