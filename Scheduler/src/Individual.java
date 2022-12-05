@@ -125,7 +125,10 @@ public class Individual {
 		if (!toAssign.unwanted.isEmpty()) {
 			randSlot = rand.nextInt(nGameslots);
 			slot = prob.gameSlots.get(randSlot);
-			while (toAssign.unwanted.contains(slot) || slot.getMax() == 0) {
+			while (toAssign.unwanted.contains(slot)|| slot.getMax() == 0) {
+				System.out.println("Max " + slot.getMax());
+				//System.out.println("Min " + slot.getMin());
+				System.out.println("N size " + toAssign.unwanted.size());
 				randSlot = rand.nextInt(nGameslots);
 				slot = prob.gameSlots.get(randSlot);
 			}
