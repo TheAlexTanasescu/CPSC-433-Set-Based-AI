@@ -1,4 +1,5 @@
-Name: U13T1SOverlapTest
+Name: 
+U13T1SOverlapTest
 
 Game slots: 
 MO, 8:00, 1, 1 
@@ -12,11 +13,10 @@ Games:
 CSMA U15T3 DIV 01 
 CUSA O18T1 DIV 01 
 CSMA U17T1 DIV 01 
+CMSA U13T1 DIV 01
 
 Practices: 
-CMSA U13T1S
 CMSA U13T1 DIV 01 PRC 01
-
 
 Not Compatible: 
 
