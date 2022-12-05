@@ -11,7 +11,8 @@ public class Scheduler {
 		
 		if (!(args.length == 12 || args.length == 9))
 		{
-			System.out.println("Improper Arguments");
+			System.out.println("Improper number of arguments");
+			System.out.println("Please run again with a proper number of arguments");
 			return;
 		
 		}
@@ -21,7 +22,7 @@ public class Scheduler {
 		try {
 			parser = new Parser(args);
 			Problem prob = parser.parse();
-			printDebug(prob, true);
+			printDebug(prob, false);
 			
 			
 				
