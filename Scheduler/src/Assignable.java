@@ -28,7 +28,7 @@ public abstract class Assignable {
 		this.tier = tier;
 		this.div = div;
 		this.isSpecial = isSpecial;
-		if (div == 9) isEvening = true;
+		if (Integer.toString(div).contains("9")) isEvening = true;
 	}
 	
 	// For CSMA games
@@ -37,14 +37,14 @@ public abstract class Assignable {
 		this.ageGroup = age;
 		this.tier = tier;
 		this.div = div;
-		if (div == 9) isEvening = true;
+		if (Integer.toString(div).contains("9")) isEvening = true;
 	}
 	
 	// For all other organizing bodies games and practices
 	public Assignable(String id, int div) {
 		this.leagueId = id;
 		this.div = div;
-		if (div == 9) isEvening = true;
+		if (Integer.toString(div).contains("9")) isEvening = true;
 	}
 
 	public TimeSlot getPartAssign() {

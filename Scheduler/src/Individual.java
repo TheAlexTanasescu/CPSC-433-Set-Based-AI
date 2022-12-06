@@ -55,7 +55,18 @@ public class Individual {
 	
 	public ArrayList<Pair> swapFacts(int index, Individual bestFit) {
 		ArrayList<Pair> toCross = bestFit.getSchedule();
-		scheduleInPair.subList(0, index).addAll(toCross.subList(index, toCross.size()));
+		
+		ArrayList<Pair> temp = new ArrayList<Pair>();
+		for (int i = 0; i < index; i++) {
+			temp.add(scheduleInPair.get(i));
+		}
+		
+		for (int i = index; i < toCross.size(); i++) {
+			temp.add(toCross.get(i));
+		}
+		
+//		scheduleInPair.subList(0, index).addAll(toCross.subList(index, toCross.size()));
+		scheduleInPair = temp;
 		return scheduleInPair;
 	}
 	
@@ -209,25 +220,32 @@ public class Individual {
 		}
 		
 		// if schedule is not full, randomly choose unassigns until full
-		while (givenSchedule.size() < prob.getIndividualMax()) {
+		int totalTries = 0;
+		while (givenSchedule.size() < prob.getIndividualMax() && totalTries < nGames + nPractices) {
 //			System.out.println("schedule not full");
 			Assignable toAssign;
 			int counter = 1;
 			if (rand.nextInt(2) == 0) {
-				toAssign = prob.games.get(rand.nextInt(nGames));
-				while (counter < nGames && givenSchedule.containsKey(toAssign)) {
+				if (nGames > 0) {
 					toAssign = prob.games.get(rand.nextInt(nGames));
-					counter++;
+					while (counter < nGames && givenSchedule.containsKey(toAssign)) {
+						toAssign = prob.games.get(rand.nextInt(nGames));
+						counter++;
+						givenSchedule.put(toAssign, null);
+						searchState.put(toAssign, null);
+					}
 				}
 			} else {
-				toAssign = prob.practices.get(rand.nextInt(nPractices));
-				while (counter < nPractices && givenSchedule.containsKey(toAssign)) {
+				if (nPractices > 0) {
 					toAssign = prob.practices.get(rand.nextInt(nPractices));
-					counter++;
+					while (counter < nPractices && givenSchedule.containsKey(toAssign)) {
+						toAssign = prob.practices.get(rand.nextInt(nPractices));
+						counter++;
+						givenSchedule.put(toAssign, null);
+						searchState.put(toAssign, null);
+					}
 				}
 			}
-			givenSchedule.put(toAssign, null);
-			searchState.put(toAssign, null);
 		}
 		
 		int constr = 0;
@@ -374,7 +392,7 @@ public class Individual {
 	
 	private boolean eveningCheck(Assignable assignable, TimeSlot toAssign) {
 		// if div 9, in evening slot
-		if (assignable.getDiv() == 9) {
+		if (Integer.toString(assignable.getDiv()).contains("9")) {
 			if (!toAssign.isEvening()) return false;
 		}
 		return true;
