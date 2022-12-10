@@ -1,3 +1,22 @@
+/*  
+Authors:
+- Alex Tanasescu (30041538)
+- Jordana Wintjes (30069597)
+- Matthew Newton (30094756)
+- Fu-Yin Lin (10132321)
+- Tiffany Hung (10149429)
+- Aleksandr Valianski (30055443)
+Class: CPSC 433
+Date: 2022-12-09
+
+Program Description: Contains methods to parse the command line arguments and input text file.
+
+Command line format: 
+  java [program] [filename] [wminfilled] [wpref] [wpair] [wsecdiff] [pengamemin] [penpracticemin] [pennotpaired] [pensection] 
+  optional arguments (include after pensection): [maxgenerations] [populationsize] [fitnessthreshold]
+
+Limitations: If it doesn't follow the proper format, the parser will throw an error and the program will stop.
+*/
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,16 +48,14 @@ public class Parser {
 	
 	public Problem parse() {
 		System.out.println("Start parsing...");
-		// parse command line weight and penalties
-		// population size needs to be greater than 2, if no entry or input <= 2, use default value
-		int maxGenerations = 3;
+
+		// Population size needs to be greater than 2, if no entry or input <= 2, use default value
+		int maxGenerations = 30;
 		int populationSize = 3;
 		int fitnessThreshold = 30;
 		
+		// Parse command line weight and penalties
 		ArrayList<Integer> parsed = new ArrayList<>();
-		
-		
-		
 		
 		for (int i = 1; i < args.length; i++) {
 			if (Integer.parseInt(args[i]) >= 0) {
@@ -57,32 +74,21 @@ public class Parser {
 		int penNotPaired = parsed.get(6);
 		int penSection = parsed.get(7);
 		
+		// If optional arguments used, update values with command line arguments
 		if (parsed.size() > 8) {
 			if (parsed.get(8) > 1) maxGenerations = parsed.get(8);
 			if (parsed.get(9) > 2) populationSize = parsed.get(9);
 			if (parsed.get(10) <= 100) fitnessThreshold = parsed.get(10);
 		} 
 		
-		// create problem object
+		// Create problem object with parsed arguments
 		prob = new Problem(wMinFilled, wPref, wPair, wSecDiff, penGameMin, penPracticeMin, penNotPaired, penSection, 
 				maxGenerations, populationSize, fitnessThreshold);
 		
-//		System.out.println(wMinFilled);
-//		System.out.println(wPref);
-//		System.out.println(wPair);
-//		System.out.println(wSecDiff);
-//		System.out.println(penGameMin);
-//		System.out.println(penPracticeMin);
-//		System.out.println(penNotPaired);
-//		System.out.println(penSection);
-//		System.out.println(maxGenerations);
-//		System.out.println(populationSize);
-//		System.out.println(fitnessThreshold);
-		
-		// initialize time slots
+		// Initialize time slots
 		initializeTimeSlots();
 		
-		// parse text file
+		// Parse text file
 //		transformInputText(args[0]);
 		ageTierPattern = Pattern.compile("^[\\s]*([A-Za-z]{1})+([0-9]+)+([A-Za-z]{1})+([0-9]+)+(?:(S)){0,1}[\\s]*");
 		gamePattern = Pattern.compile("^[\\s]*([A-Za-z]{4})[\\s][\\s]*+([0-9A-Za-z\\s]+)[\\s][\\s]*+DIV[\\s]+([0-9]+)[\\s]*");
@@ -96,7 +102,7 @@ public class Parser {
 		
 		prob.setMaxSlots(totalAvailableSlotsFromInput);
 		
-		// add implied special practices if not already existed
+		// Add implied special practices if not already existed
 		for (Game inputGame : prob.games) {
 			if (inputGame.getAgeGroup() == 12 && inputGame.getTier() == 1 && inputGame.isSpecial()) {
 				break;
@@ -115,7 +121,7 @@ public class Parser {
 			}
 		}
 		
-		
+		// Check if number of games don't exceed max game slots allowed
 		int gameSlotTotal = 0;
         for (GameSlot slot : prob.gameSlots) {
             gameSlotTotal += slot.getMax();
@@ -124,6 +130,7 @@ public class Parser {
         if (gameSlotTotal < prob.games.size()) 
             throw new IllegalArgumentException("No solution can be found - game slot size"); 
         
+		// Check if number of practices don't exceed max practice slots allowed
         int practiceSlotTotal = 0;
         for (PracticeSlot slot : prob.practiceSlots) {
             practiceSlotTotal += slot.getMax();
@@ -131,17 +138,10 @@ public class Parser {
         
         if (practiceSlotTotal < prob.practices.size()) 
             throw new IllegalArgumentException("No solution can be found - prac slot size");
-//		for (TimeSlot slot : prob.gameSlots) {
-//			System.out.println(slot);
-//		}
-//		
-//		for (TimeSlot slot : prob.practiceSlots) {
-//			System.out.println(slot);
-//		}
-		
-		//System.out.println("Parsing finished...");
+
 		System.out.println("Parsing finished...");
 		
+		// If possible valid solution exists, return parsed problem object
 		for(GameSlot g : prob.gameSlots) {
 			if(g.getMax() > 0 && (g.getMax() >= g.getMin())) {
 				return prob;
@@ -156,24 +156,28 @@ public class Parser {
 				
 		}
 		
-		
+		// If no possible valid solutions exist, print message for no solutions
 		System.out.println("No solution can be found...");
         System.exit(0);
         return null;
 		
 	}
 	
+	// Function for getting total available slots
 	public int getTotalAvailableSlotsFromInput() {
 		return totalAvailableSlotsFromInput;
 	}
 
+	// Function for parsing MWF time slots
 	private void timeSlotsMWF(Day day, int start, int inc, String type) {
 		int endMWF = 2000;
 		
+		// existing games slots added to gameslot arraylist
 		if (type.equals("game")) {
 			for (int i = start; i <= endMWF; i += inc) {
 				prob.gameSlots.add(new GameSlot(day, Integer.toString(i)));
 			}
+		// existing practice slots added to practiceslot arraylist
 		} else if (type.equals("practice")) {
 			if (day == Day.FR) {
 				for (int i = start; i < endMWF; i += inc) {
@@ -187,6 +191,7 @@ public class Parser {
 		}
 	}
 	
+	// Function for setting up time slots
 	private void initializeTimeSlots() {
 		int start = 800;
 		int endTT = 1830;
@@ -203,22 +208,8 @@ public class Parser {
 			prob.gameSlots.add(new GameSlot(Day.TU, Integer.toString(i + 130)));
 		}
 	}
-	
-//	private void transformInputText(String filename) {
-//		try (BufferedReader reader = new BufferedReader(new FileReader(filename)); 
-//				BufferedWriter writer = new BufferedWriter(new FileWriter("input.txt"))) {
-//			for (String line = reader.readLine(); line != null; line = reader.readLine()) { 
-//		        if (!line.trim().isEmpty()) {
-//		        	writer.write(line);
-//		        }
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
 
+	// Function for the parse buffer
 	public void parseBuffer(String filename) {
 		try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
 			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
@@ -242,84 +233,6 @@ public class Parser {
 						else break;
 				}
 			}
-//			for (TimeSlot slot : prob.gameSlots) {
-//				System.out.println(slot);
-//			}
-//			for (TimeSlot slot : prob.practiceSlots) {
-//				System.out.println(slot);
-//			}
-//			for (Game game : prob.games) {
-//				System.out.println(game);
-//			}
-//			for (Practice practice : prob.practices) {
-//				System.out.println(practice);
-//			}
-//			for (Game game : prob.games) {
-//				System.out.print(game + ":");
-//				for (Assignable a : game.notcompatible) {
-//					System.out.print(a + ", ");
-//				}	
-//				System.out.println("break");
-//			}
-//			for (Practice practice : prob.practices) {
-//				System.out.print(practice + ":");
-//				for (Assignable p : practice.notcompatible) {
-//					System.out.print(p + ", ");
-//				}
-//				System.out.println("break");
-//			}
-//			for (Game game : prob.games) {
-//				System.out.print(game + ":");
-//				for (TimeSlot a : game.unwanted) {
-//					System.out.print(a + ", ");
-//				}	
-//				System.out.println("break");
-//			}
-//			for (Practice practice : prob.practices) {
-//				System.out.print(practice + ":");
-//				for (TimeSlot p : practice.unwanted) {
-//					System.out.print(p + ", ");
-//				}
-//				System.out.println("break");
-//			}
-//			for (Game game : prob.games) {
-//				System.out.print(game + ":");
-//				for (TimeSlot a : game.preferences.keySet()) {
-//					System.out.print(a + ": " + game.preferences.get(a) + ", ");
-//				}	
-//				System.out.println("break");
-//			}
-//			for (Practice practice : prob.practices) {
-//				System.out.print(practice + ":");
-//				for (TimeSlot p : practice.preferences.keySet()) {
-//					System.out.print(p + ": " + practice.preferences.get(p) + ", ");
-//				}
-//				System.out.println("break");
-//			}
-//			for (Game game : prob.games) {
-//				System.out.print(game + ":");
-//				for (Assignable a : game.pair) {
-//					System.out.print(a + ", ");
-//				}	
-//				System.out.println("break");
-//			}
-//			for (Practice practice : prob.practices) {
-//				System.out.print(practice + ":");
-//				for (Assignable p : practice.pair) {
-//					System.out.print(p + ", ");
-//				}
-//				System.out.println("break");
-//			}
-//			for (Game game : prob.games) {
-//				System.out.print(game + ":");
-//				if (game.getPartAssign() != null) System.out.print(game.getPartAssign() + ", ");
-//				System.out.println("break");
-//			}
-//			for (Practice practice : prob.practices) {
-//				System.out.print(practice + ":");
-//				if (practice.getPartAssign() != null) System.out.print(practice.getPartAssign() + ", ");
-//				System.out.println("break");
-//			}
 			reader.close();
 		} catch (FileNotFoundException e){
 			e.printStackTrace();
@@ -328,6 +241,7 @@ public class Parser {
 		}
 	}
 	
+	// Function for parsing game slots into gameslot arraylist 
 	private GameSlot parseGameSlot(String identifier) {
 		GameSlot gameSlot = null;
 		identifier = identifier.replaceAll("\\s", "");
@@ -360,6 +274,7 @@ public class Parser {
 		return gameSlot;
 	}
 	
+	// Function for parsing practice slots into practiceslot arraylist
 	private PracticeSlot parsePracticeSlot(String identifier) {
 		PracticeSlot practiceSlot = null;
 		identifier = identifier.replaceAll("\\s", "");
@@ -395,6 +310,7 @@ public class Parser {
 		return practiceSlot;
 	}
 	
+	// Function for parsing games objects
 	private Game parseGame(String identifier) {
 		Matcher m = gamePattern.matcher(identifier);
 		if (m.find()) {
@@ -414,6 +330,7 @@ public class Parser {
 		return null;
 	}
 	
+	// Function for parsing practices objects
 	private Practice parsePractice(String identifier) {
 		Matcher m = practicePattern.matcher(identifier);
 		if (m.find()) {
@@ -447,6 +364,7 @@ public class Parser {
 		return null;
 	}
 	
+	// Function to get gameslot info
 	private GameSlot getGameSlot(GameSlot toFind) {
 		
 		int index = prob.gameSlots.indexOf(toFind);
@@ -454,25 +372,28 @@ public class Parser {
 		return null;
 	}
 	
+	// Function to get practiceslot info
 	private PracticeSlot getPracticeSlot(PracticeSlot toFind) {
 		int index = prob.practiceSlots.indexOf(toFind);
 		if (index != -1) return prob.practiceSlots.get(index);
 		return null;
 	}
 	
+	// Function to get game info
 	private Game getGame(Game toFind) {
 		int index = prob.games.indexOf(toFind);
 		if (index != -1) return prob.games.get(index);
 		return null;
 	}
 	
+	// Function to get practice info
 	private Practice getPractice(Practice toFind) {
 		int index = prob.practices.indexOf(toFind);
 		if (index != -1) return prob.practices.get(index);
 		return null;
 	}
 	
-
+	// Function to parse input file name
 	private void parseName(BufferedReader reader) throws IOException {
 		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
 			if (line.isEmpty()) return;
@@ -480,7 +401,7 @@ public class Parser {
 		}
 	}
 	
-	
+	// Function to read game slots from input file
 	private void parseGameSlots(BufferedReader reader) throws IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -492,6 +413,7 @@ public class Parser {
 		}
 	}
 	
+	// Function to read practice slots from input file
 	private void parsePracticeSlots(BufferedReader reader) throws NumberFormatException, IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -503,8 +425,7 @@ public class Parser {
 		}
 	}
 	
-
-	
+	// Function to read games from input file
 	private void parseGames(BufferedReader reader) throws NumberFormatException, IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -515,6 +436,7 @@ public class Parser {
 		}
 	}
 	
+	// Function to read practices from input file
 	private void parsePractices(BufferedReader reader) throws NumberFormatException, IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -525,12 +447,13 @@ public class Parser {
 		}
 	}
 	
-
-	
+	// Function to identify games versus practices
 	private boolean isGame(String identifier) {
 		if (identifier.contains("PRC") || identifier.contains("OPN")) return false;
 		return true;
 	}
+
+	// Function to parse not compatible hard constraint
 	private void parseNotCompatible(BufferedReader reader) throws NumberFormatException, IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -577,6 +500,7 @@ public class Parser {
 		}
 	}
 	
+	// Function to parse unwanted hard constraint
 	private void parseUnwanted(BufferedReader reader) throws IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -604,6 +528,7 @@ public class Parser {
 		}
 	}
 	
+	// Function to parse preferences soft constraint
 	private void parsePreferences(BufferedReader reader) throws IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -619,19 +544,20 @@ public class Parser {
 						unwantedSlot = parseGameSlot(slot);
 						if (assignable != null && unwantedSlot != null) {
 							assignable.preferences.put(unwantedSlot, Integer.parseInt(m.group(4)));
-						} else throw new IllegalArgumentException(String.format("Ignore invalid preference: %s" + "\nNo solution can be found... \n", line)); 			
+						} else System.out.println(String.format("Ignore invalid preference: %s", line)); 			
 					} else {
 						assignable = getPractice(parsePractice(identifier));
 						unwantedSlot = parsePracticeSlot(slot);
 						if (assignable != null && unwantedSlot != null) {
 							assignable.preferences.put(unwantedSlot, Integer.parseInt(m.group(4)));
-						} else throw new IllegalArgumentException(String.format("Ignore invalid preference: %s" + "\nNo solution can be found... \n", line)); 
+						} else System.out.println(String.format("Ignore invalid preference: %s", line)); 
 					}
 				}
 			} else return;
 		}
 	}
 	
+	// Function to parse pair soft constraint
 	private void parsePair(BufferedReader reader) throws IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -640,40 +566,41 @@ public class Parser {
 				if (m.find()) {
 					String first = m.group(1).trim();
 					String second = m.group(2).trim();
-					
+
 					if (isGame(first) && isGame(second)) {
 						Game a1 = getGame(parseGame(first));
 						Game a2 = getGame(parseGame(second));
 						if (a1 != null && a2 != null) {
 							a1.pair.add(a2);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s" + "\nNo solution can be found... \n", line)); 
+						} else System.out.println(String.format("Ignore invalid pair: %s", line)); 
 					}
 					else if (isGame(first) && !isGame(second)) {
 						Game a1 = getGame(parseGame(first));
 						Practice a2 = getPractice(parsePractice(second));
 						if (a1 != null && a2 != null) {
 							a1.pair.add(a2);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s" + "\nNo solution can be found... \n", line)); 
+						} else System.out.println(String.format("Ignore invalid pair: %s", line)); 
 					}
 					else if (!isGame(first) && isGame(second)) {
 						Practice a1 = getPractice(parsePractice(first));
 						Game a2 = getGame(parseGame(second));
 						if (a1 != null && a2 != null) {
 							a1.pair.add(a2);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s" + "\nNo solution can be found... \n", line)); 
+						} else System.out.println(String.format("Ignore invalid pair: %s", line)); 
 					}
 					else if (!isGame(first) && !isGame(second)) {
 						Practice a1 = getPractice(parsePractice(first));
 						Practice a2 = getPractice(parsePractice(second));
 						if (a1 != null && a2 != null) {
 							a1.pair.add(a2);
-						} else throw new IllegalArgumentException(String.format("Ignore invalid pair: %s" + "\nNo solution can be found... \n", line)); 
+						} else System.out.println(String.format("Ignore invalid pair: %s", line)); 
 					}
 				}
 			} else return;
 		}
 	}
 	
+	// Function to parse partial assignment hard constraint
 	private void parsePartialAssignments(BufferedReader reader) throws IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
